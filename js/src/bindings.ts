@@ -21,7 +21,7 @@ import { NameAuction } from "./state";
 
 // devnet
 export const PROGRAM_ID = new PublicKey(
-  "8Qk6oYBaENBKHaUKWFUBANXedBNttfLYcf9PzjFdhkUR"
+  "CrR5iPwBE4wEGe7NS3YA2j5NXityhqEnumvW23MwnTA9"
 );
 
 export const NAMING_SERVICE_PROGRAM_ID = new PublicKey(
@@ -29,7 +29,7 @@ export const NAMING_SERVICE_PROGRAM_ID = new PublicKey(
 );
 
 export const AUCTION_PROGRAM_ID = new PublicKey(
-  "namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX"
+  "HLGetPpEUaagthEtF4px9S24hwJrwz3qvgRZxkWTw4ei"
 );
 
 export const BASE_AUCTION_DATA_SIZE =
