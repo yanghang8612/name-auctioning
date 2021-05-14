@@ -1,10 +1,5 @@
 import { PublicKey, Connection } from "@solana/web3.js";
-import BN from "bn.js";
-import { BinaryReader, Schema, deserializeUnchecked } from "borsh";
-import { AccountLayout } from "@solana/spl-token";
-import { PositionType } from "./instructions";
-import { getOraclePrice } from "./secondary_bindings";
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from "node:constants";
+import { Schema, deserializeUnchecked } from "borsh";
 import { getHashedName, getNameAccountKey } from "@bonfida/spl-name-service";
 import { ROOT_DOMAIN_ACCOUNT } from "./bindings";
 
