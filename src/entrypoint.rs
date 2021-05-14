@@ -4,7 +4,7 @@ use solana_program::{
     msg, program_error::PrintProgramError, pubkey::Pubkey,
 };
 
-use crate::{error::TokenizationError, processor::Processor};
+use crate::{error::NameAuctionError, processor::Processor};
 
 #[cfg(not(feature = "no-entrypoint"))]
 entrypoint!(process_instruction);
@@ -15,19 +15,20 @@ pub fn process_instruction(
     instruction_data: &[u8],
 ) -> ProgramResult {
     if let Err(error) = Processor::process_instruction(program_id, accounts, instruction_data) {
-        error.print::<TokenizationError>();
+        error.print::<NameAuctionError>();
         return Err(error);
     }
     Ok(())
 }
 
-impl PrintProgramError for TokenizationError {
+impl PrintProgramError for NameAuctionError {
     fn print<E>(&self)
     where
         E: 'static + std::error::Error + DecodeError<E> + PrintProgramError + FromPrimitive,
     {
         match self {
-            TokenizationError::AuctionInProgress => msg!("Error: the auction is still in progress"),
+            NameAuctionError::AuctionInProgress => msg!("Error: the auction is still in progress"),
+            NameAuctionError::BidTooLow => msg!("Error: The bid price is too low"),
         }
     }
 }
