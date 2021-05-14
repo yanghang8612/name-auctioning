@@ -19,7 +19,7 @@ thiserror = "1.0.24"
 spl-token = {version = "3.1.0", features = ["no-entrypoint"]}
 spl-associated-token-account = "1.0.2"
 spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"]}
-spl-auction = {path = "../metaplex-master/rust/auction/program"}
+spl-auction = {path = "../../metaplex-master/rust/auction/program", features = ["no-entrypoint"]}
 
 [dev-dependencies]
 solana-program-test =  "1.6.8"

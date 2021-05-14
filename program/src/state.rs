@@ -9,12 +9,13 @@ pub struct NameAuction {
     pub is_initialized: bool,
     pub quote_mint: [u8; 32],
     pub signer_nonce: u8,
+    pub auction_account: [u8;32]
 }
 
 impl Sealed for NameAuction {}
 
 impl Pack for NameAuction {
-    const LEN: usize = 98;
+    const LEN: usize = 66;
 
     fn pack_into_slice(&self, dst: &mut [u8]) {
         let mut pt = dst;
