@@ -4,7 +4,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bonfida/bonfida-perps"
+    "url": "https://github.com/bonfida/name-auctioning"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

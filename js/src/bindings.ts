@@ -35,8 +35,9 @@ export const AUCTION_PROGRAM_ID = new PublicKey(
 export const BASE_AUCTION_DATA_SIZE =
   32 + 32 + 32 + 9 + 9 + 9 + 9 + 1 + 32 + 1 + 8 + 8;
 
-export const ROOT_DOMAIN_ACCOUNT = new PublicKey("");
-
+export const ROOT_DOMAIN_ACCOUNT = new PublicKey(
+  "4MpujQVQLPPsC8ToEcSepSvtYCf5ZBf2odxZkZ2Qz8QH"
+);
 
 const SLOT_SIZE = 33;
 
@@ -45,7 +46,7 @@ export type PrimedTransaction = [Account[], TransactionInstruction[]];
 const MARKET_STATE_SPACE = 5000; // Size enough for more than 40 active leverage types with 10 memory pages each.
 
 export async function initCentralState(
-  feePayer: PublicKey,
+  feePayer: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState, stateNonce] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -59,7 +60,7 @@ export async function initCentralState(
     centralState,
     SystemProgram.programId,
     feePayer,
-    SYSVAR_RENT_PUBKEY,
+    SYSVAR_RENT_PUBKEY
   );
 
   let instructions = [initCentralStateInstruction];
@@ -71,16 +72,17 @@ export async function createNameAuction(
   connection: Connection,
   name: string,
   feePayer: PublicKey,
-  quoteMint: PublicKey,
+  quoteMint: PublicKey
 ): Promise<PrimedTransaction> {
-
   let hashedName = await getHashedName(name);
 
   let nameAccount = await getNameAccountKey(hashedName, ROOT_DOMAIN_ACCOUNT);
 
   let auctionAccount = new Account();
 
-  let lamports = await connection.getMinimumBalanceForRentExemption(BASE_AUCTION_DATA_SIZE);
+  let lamports = await connection.getMinimumBalanceForRentExemption(
+    BASE_AUCTION_DATA_SIZE
+  );
 
   let allocateAuctionAccount = SystemProgram.createAccount({
     /** The account that will transfer lamports to the created account */
@@ -93,11 +95,12 @@ export async function createNameAuction(
     space: BASE_AUCTION_DATA_SIZE,
     /** Public key of the program to assign as the owner of the created account */
     programId: AUCTION_PROGRAM_ID,
-  })
+  });
 
-  let [stateAccount, signerNonce] = await PublicKey.findProgramAddress([nameAccount.toBuffer()], PROGRAM_ID);
-
-
+  let [stateAccount, signerNonce] = await PublicKey.findProgramAddress(
+    [nameAccount.toBuffer()],
+    PROGRAM_ID
+  );
 
   let initCentralStateInstruction = new createInstruction({
     hashedName: hashedName,

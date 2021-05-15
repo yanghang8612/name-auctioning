@@ -1,7 +1,4 @@
-import {
-  PublicKey,
-  TransactionInstruction,
-} from "@solana/web3.js";
+import { PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
 import { Schema, serialize } from "borsh";
 
@@ -24,13 +21,14 @@ export class Instruction {
 export class initInstruction {
   tag: number;
   stateNonce: number;
-  // @ts-ignore
   static schema: Schema = new Map([
-    initInstruction,
-    {
-      kind: "struct",
-      fields: [["stateNonce", "u8"]],
-    },
+    [
+      initInstruction,
+      {
+        kind: "struct",
+        fields: [["stateNonce", "u8"]],
+      },
+    ],
   ]);
 
   constructor(obj: { stateNonce: number }) {
@@ -84,13 +82,15 @@ export class initInstruction {
 export class createInstruction {
   tag: number;
   hashedName: Uint8Array;
-  // @ts-ignore
+
   static schema: Schema = new Map([
-    initInstruction,
-    {
-      kind: "struct",
-      fields: [["hashedName", [32]]],
-    },
+    [
+      createInstruction,
+      {
+        kind: "struct",
+        fields: [["hashedName", [32]]],
+      },
+    ],
   ]);
 
   constructor(obj: { hashedName: Uint8Array }) {
@@ -99,7 +99,7 @@ export class createInstruction {
   }
 
   serialize(): Uint8Array {
-    return serialize(initInstruction.schema, this);
+    return serialize(createInstruction.schema, this);
   }
 
   getInstruction(
@@ -188,17 +188,19 @@ export class claimInstruction {
   hashedName: Uint8Array;
   lamports: BN;
   space: number;
-  // @ts-ignore
+
   static schema: Schema = new Map([
-    initInstruction,
-    {
-      kind: "struct",
-      fields: [
-        ["hashedName", [32]],
-        ["lamports", "u64"],
-        ["space", "u32"],
-      ],
-    },
+    [
+      claimInstruction,
+      {
+        kind: "struct",
+        fields: [
+          ["hashedName", [32]],
+          ["lamports", "u64"],
+          ["space", "u32"],
+        ],
+      },
+    ],
   ]);
 
   constructor(obj: { hashedName: Uint8Array; lamports: BN; space: number }) {
@@ -209,7 +211,7 @@ export class claimInstruction {
   }
 
   serialize(): Uint8Array {
-    return serialize(initInstruction.schema, this);
+    return serialize(claimInstruction.schema, this);
   }
 
   getInstruction(
@@ -229,7 +231,7 @@ export class claimInstruction {
     bonfidaVault: PublicKey,
     bidderWallet: PublicKey,
     bidderPot: PublicKey,
-    bidderPotTokenAccount: PublicKey,
+    bidderPotTokenAccount: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
