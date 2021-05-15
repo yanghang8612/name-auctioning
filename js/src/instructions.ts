@@ -26,7 +26,10 @@ export class initInstruction {
       initInstruction,
       {
         kind: "struct",
-        fields: [["stateNonce", "u8"]],
+        fields: [
+          ["tag", "u8"],
+          ["stateNonce", "u8"],
+        ],
       },
     ],
   ]);
@@ -88,7 +91,10 @@ export class createInstruction {
       createInstruction,
       {
         kind: "struct",
-        fields: [["hashedName", [32]]],
+        fields: [
+          ["tag", "u8"],
+          ["hashedName", [32]],
+        ],
       },
     ],
   ]);
@@ -195,6 +201,7 @@ export class claimInstruction {
       {
         kind: "struct",
         fields: [
+          ["tag", "u8"],
           ["hashedName", [32]],
           ["lamports", "u64"],
           ["space", "u32"],
