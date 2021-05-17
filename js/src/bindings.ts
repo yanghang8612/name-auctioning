@@ -78,24 +78,9 @@ export async function createNameAuction(
 
   let nameAccount = await getNameAccountKey(hashedName, undefined, ROOT_DOMAIN_ACCOUNT);
 
-  let auctionAccount = new Account();
+  let auctionSeeds = [Buffer.from("auction", "utf-8"), AUCTION_PROGRAM_ID.toBuffer(), nameAccount.toBuffer()];
 
-  let lamports = await connection.getMinimumBalanceForRentExemption(
-    BASE_AUCTION_DATA_SIZE
-  );
-
-  let allocateAuctionAccount = SystemProgram.createAccount({
-    /** The account that will transfer lamports to the created account */
-    fromPubkey: feePayer,
-    /** Public key of the created account */
-    newAccountPubkey: auctionAccount.publicKey,
-    /** Amount of lamports to transfer to the created account */
-    lamports,
-    /** Amount of space in bytes to allocate to the created account */
-    space: BASE_AUCTION_DATA_SIZE,
-    /** Public key of the program to assign as the owner of the created account */
-    programId: AUCTION_PROGRAM_ID,
-  });
+  let [auctionAccount, _] = await PublicKey.findProgramAddress(auctionSeeds, PROGRAM_ID);
 
   let [stateAccount, signerNonce] = await PublicKey.findProgramAddress(
     [nameAccount.toBuffer()],
@@ -113,15 +98,15 @@ export async function createNameAuction(
     nameAccount,
     SystemProgram.programId,
     AUCTION_PROGRAM_ID,
-    auctionAccount.publicKey,
+    auctionAccount,
     stateAccount,
     feePayer,
     quoteMint
   );
 
-  let instructions = [allocateAuctionAccount, initCentralStateInstruction];
+  let instructions = [initCentralStateInstruction];
 
-  return [[auctionAccount], instructions];
+  return [[], instructions];
 }
 
 export async function claimName(

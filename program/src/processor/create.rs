@@ -14,7 +14,7 @@ use spl_name_service::state::get_seeds_and_key;
 
 use crate::{
     state::NameAuction,
-    utils::{check_account_key, check_account_owner, Cpi},
+    utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
 
 use super::AUCTION_MAX_LENGTH;
@@ -58,8 +58,9 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
     check_account_key(a.auction_program, &spl_auction::id()).unwrap();
-    check_account_owner(a.auction, &spl_auction::id()).unwrap();
+    // check_account_owner(a.auction, &spl_auction::id()).unwrap();
     check_account_owner(a.state, &system_program::id()).unwrap();
+    check_signer(a.fee_payer).unwrap();
 
     Ok(a)
 }
@@ -98,10 +99,20 @@ pub fn process_create(
         return Err(ProgramError::AccountAlreadyInitialized);
     }
 
-    let (derived_state_key, derived_signer_nonce) =
-        Pubkey::find_program_address(&[&key], program_id);
+    let mut signer_seeds = key.chunks(32).collect::<Vec<_>>();
 
-    let signer_seeds: &[&[u8]] = &[&key, &[derived_signer_nonce]];
+    msg!(
+        "Seeds length: {:?}, element length {:?}",
+        signer_seeds.len(),
+        signer_seeds[0].len()
+    );
+
+    let (derived_state_key, derived_signer_nonce) =
+        Pubkey::find_program_address(&signer_seeds, program_id);
+
+    let signer_nonce_singleton = [derived_signer_nonce];
+
+    signer_seeds.push(&signer_nonce_singleton);
 
     if &derived_state_key != accounts.state.key {
         msg!("An invalid signer account was provided");
@@ -125,11 +136,15 @@ pub fn process_create(
         is_initialized: true,
         quote_mint: accounts.quote_mint.key.to_bytes(),
         signer_nonce: derived_signer_nonce,
-        auction_account: accounts.auction.key.to_bytes()
+        auction_account: accounts.auction.key.to_bytes(),
     };
 
-    let mut pt: &mut [u8] = &mut accounts.state.data.borrow_mut();
-    state.serialize(&mut pt)?;
+    {
+        let mut pt: &mut [u8] = &mut accounts.state.data.borrow_mut();
+        state.serialize(&mut pt)?;
+    }
+
+    msg!("Setting up auction");
 
     Cpi::create_auction(
         accounts.auction_program,
@@ -140,8 +155,10 @@ pub fn process_create(
         end_auction_at,
         accounts.state,
         *accounts.name.key,
-        signer_seeds,
+        &signer_seeds,
     )?;
+
+    msg!("Starting auction");
 
     Cpi::start_auction(
         accounts.auction_program,
@@ -149,7 +166,7 @@ pub fn process_create(
         accounts.auction,
         accounts.state,
         *accounts.name.key,
-        signer_seeds,
+        &signer_seeds,
     )?;
 
     Ok(())

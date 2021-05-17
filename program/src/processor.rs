@@ -47,7 +47,7 @@ impl Processor {
                 space,
             } => {
                 msg!("Instruction: Claim");
-                process_claim(program_id, accounts, hashed_name, lamports, space)?;
+                process_claim(program_id, accounts, Vec::from(hashed_name), lamports, space)?;
             }
         }
         Ok(())

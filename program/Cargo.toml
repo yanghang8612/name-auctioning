@@ -11,7 +11,7 @@ no-entrypoint = []
 test-bpf = []
 
 [dependencies]
-solana-program = "1.6.7"
+solana-program = "1.6.9"
 num-traits = "0.2.14"
 num-derive = "0.3.3"
 borsh = "0.9.0"
@@ -22,10 +22,10 @@ spl-name-service = {git = "https://github.com/solana-labs/solana-program-library
 spl-auction = {path = "../../metaplex-master/rust/auction/program", features = ["no-entrypoint"]}
 
 [dev-dependencies]
-solana-program-test =  "1.6.8"
+solana-program-test =  "1.6.9"
 tokio  = {version = "1.0", features = ["macros"]}
 futures =  "0.3"
-solana-sdk = "1.6.8"
+solana-sdk = "1.6.9"
 
 [lib]
 crate-type = ["cdylib", "lib"]

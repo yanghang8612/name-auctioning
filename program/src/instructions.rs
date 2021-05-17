@@ -1,10 +1,9 @@
+use std::str::FromStr;
+
 use borsh::{BorshDeserialize, BorshSerialize};
-use solana_program::{
-    instruction::{AccountMeta, Instruction},
-    pubkey::Pubkey,
-    system_program,
-    sysvar::rent,
-};
+use solana_program::{instruction::{AccountMeta, Instruction}, pubkey::Pubkey, rent, system_program, sysvar};
+
+use crate::processor::BONFIDA_VAULT;
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
 pub enum ProgramInstruction {
@@ -47,42 +46,106 @@ pub enum ProgramInstruction {
     ///   4... `[?]` The necessary accounts for the instruction, in instruction order.
     ///               All instances of the signer account will be set as signer when calling the instruction
     Claim {
-        hashed_name: Vec<u8>,
+        hashed_name: [u8; 32],
         lamports: u64,
         space: u32,
     },
 }
 
-pub struct TokenAuthorityContext {
-    pub program_id: Pubkey,
-    pub signer_key: Pubkey,
-    pub mint: Pubkey,
+pub fn init(
+    program_id: Pubkey,
+    state_account: Pubkey,
+    fee_payer: Pubkey,
+    state_nonce: u8
+) -> Instruction {
+    let data = ProgramInstruction::Init { state_nonce }.try_to_vec().unwrap();
+    let accounts = vec![
+        AccountMeta::new(state_account, false),
+        AccountMeta::new_readonly(system_program::id(), false),
+        AccountMeta::new(fee_payer, true),
+        AccountMeta::new_readonly(sysvar::rent::id(), false),
+    ];
+    Instruction {
+        program_id,
+        accounts,
+        data
+    }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn create(
-    ctx: &TokenAuthorityContext,
-    parent_authority: Pubkey,
+    program_id: Pubkey,
+    root_domain: Pubkey,
+    name_account: Pubkey,
+    auction_account: Pubkey,
+    state_account: Pubkey,
     fee_payer: Pubkey,
-    target_token_account: Pubkey,
-    target_token_account_owner: Pubkey,
-    seeds: [u8; 32],
+    quote_mint: Pubkey,
+    hashed_name: [u8; 32],
 ) -> Instruction {
-    let data = ProgramInstruction::Create { hashed_name: seeds }
+    let data = ProgramInstruction::Create { hashed_name }
         .try_to_vec()
         .unwrap();
     let accounts = vec![
-        AccountMeta::new_readonly(rent::id(), false),
+        AccountMeta::new_readonly(sysvar::rent::id(), false),
+        AccountMeta::new_readonly(sysvar::clock::id(), false),
+        AccountMeta::new_readonly(spl_name_service::id(), false),
+        AccountMeta::new_readonly(root_domain, false),
+        AccountMeta::new_readonly(name_account, false),
         AccountMeta::new_readonly(system_program::id(), false),
-        AccountMeta::new_readonly(spl_token::id(), false),
-        AccountMeta::new(ctx.signer_key, false),
-        AccountMeta::new_readonly(parent_authority, true),
+        AccountMeta::new_readonly(spl_auction::id(), false),
+        AccountMeta::new(auction_account, false),
+        AccountMeta::new(state_account, false),
         AccountMeta::new(fee_payer, true),
-        AccountMeta::new(ctx.mint, false),
-        AccountMeta::new(target_token_account, false),
-        AccountMeta::new(target_token_account_owner, false),
+        AccountMeta::new(quote_mint, false),
     ];
     Instruction {
-        program_id: ctx.program_id,
+        program_id,
+        accounts,
+        data,
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn claim(
+    program_id: Pubkey,
+    root_domain: Pubkey,
+    name_account: Pubkey,
+    auction_account: Pubkey,
+    state_account: Pubkey,
+    central_state_account: Pubkey,
+    fee_payer: Pubkey,
+    quote_mint: Pubkey,
+    bidder_wallet: Pubkey,
+    bidder_pot: Pubkey,
+    bidder_pot_token: Pubkey,
+    lamports: u64,
+    space: u32,
+    seeds: [u8; 32],
+) -> Instruction {
+    let data = ProgramInstruction::Claim { hashed_name: seeds, lamports, space }
+        .try_to_vec()
+        .unwrap();
+    let accounts = vec![
+        AccountMeta::new_readonly(sysvar::clock::id(), false),
+        AccountMeta::new_readonly(spl_token::id(), false),
+        AccountMeta::new_readonly(spl_name_service::id(), false),
+        AccountMeta::new_readonly(root_domain, false),
+        AccountMeta::new_readonly(name_account, false),
+        AccountMeta::new_readonly(system_program::id(), false),
+        AccountMeta::new(auction_account, false),
+        AccountMeta::new_readonly(central_state_account, false),
+        AccountMeta::new(state_account, false),
+        AccountMeta::new_readonly(spl_auction::id(), false),
+        AccountMeta::new(fee_payer, true),
+        AccountMeta::new(quote_mint, false),
+        AccountMeta::new(Pubkey::from_str(BONFIDA_VAULT).unwrap(), false),
+        AccountMeta::new_readonly(bidder_wallet, false),
+        AccountMeta::new(bidder_pot, false),
+        AccountMeta::new(bidder_pot_token, false),
+    ];
+    Instruction {
+        program_id,
         accounts,
         data,
     }
