@@ -29,7 +29,7 @@ export const NAMING_SERVICE_PROGRAM_ID = new PublicKey(
 );
 
 export const AUCTION_PROGRAM_ID = new PublicKey(
-  "HLGetPpEUaagthEtF4px9S24hwJrwz3qvgRZxkWTw4ei"
+  "8penQkW1ByRHECArWpV5W7htAKkcieY3dXhz4XxFVnu5"
 );
 
 export const BASE_AUCTION_DATA_SIZE =

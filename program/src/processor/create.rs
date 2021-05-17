@@ -56,7 +56,6 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
-    check_account_owner(a.name, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
     check_account_key(a.auction_program, &spl_auction::id()).unwrap();
     check_account_owner(a.auction, &spl_auction::id()).unwrap();
