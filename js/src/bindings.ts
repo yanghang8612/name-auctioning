@@ -76,7 +76,7 @@ export async function createNameAuction(
 ): Promise<PrimedTransaction> {
   let hashedName = await getHashedName(name);
 
-  let nameAccount = await getNameAccountKey(hashedName, ROOT_DOMAIN_ACCOUNT);
+  let nameAccount = await getNameAccountKey(hashedName, undefined, ROOT_DOMAIN_ACCOUNT);
 
   let auctionAccount = new Account();
 
