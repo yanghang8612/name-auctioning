@@ -32,9 +32,9 @@ fn parse_accounts<'a, 'b: 'a>(
         rent_sysvar_account: next_account_info(accounts_iter)?,
     };
 
-    check_account_owner(a.state_account, &system_program::id())?;
-    check_account_key(a.system_program, &system_program::id())?;
-    check_account_key(a.rent_sysvar_account, &sysvar::rent::id())?;
+    check_account_owner(a.state_account, &system_program::id()).unwrap();
+    check_account_key(a.system_program, &system_program::id()).unwrap();
+    check_account_key(a.rent_sysvar_account, &sysvar::rent::id()).unwrap();
 
     Ok(a)
 }
