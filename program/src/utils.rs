@@ -62,7 +62,7 @@ impl Cpi {
             *fee_payer.key,
             CreateAuctionArgs {
                 winners: WinnerLimit::Capped(1),
-                end_auction_at,
+                end_auction_at: end_auction_at,
                 end_auction_gap: Some(END_AUCTION_GAP),
                 token_mint: Pubkey::from_str(TOKEN_MINT).unwrap(),
                 authority: *authority.key,
