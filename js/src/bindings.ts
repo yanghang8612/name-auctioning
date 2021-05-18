@@ -20,7 +20,7 @@ import { NameAuction } from "./state";
 
 // devnet
 export const PROGRAM_ID = new PublicKey(
-  "CrR5iPwBE4wEGe7NS3YA2j5NXityhqEnumvW23MwnTA9"
+  "8xRMAjEWMj7fRCgfs8Ne6eW9ojsLcHNjmwyJjGU7vpXu"
 );
 
 export const NAMING_SERVICE_PROGRAM_ID = new PublicKey(
