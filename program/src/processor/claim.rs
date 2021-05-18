@@ -113,9 +113,9 @@ pub fn process_claim(
     check_account_key(accounts.quote_mint, &Pubkey::new(&state.quote_mint))?;
 
     let (derived_state_key, derived_signer_nonce) =
-        Pubkey::find_program_address(&[&key], program_id);
+        Pubkey::find_program_address(&[&name_account_key.to_bytes()], program_id);
 
-    let signer_seeds: &[&[u8]] = &[&key, &[derived_signer_nonce]];
+    let signer_seeds: &[&[u8]] = &[&name_account_key.to_bytes(), &[derived_signer_nonce]];
 
     if &derived_state_key != accounts.state.key {
         msg!("An invalid signer account was provided");

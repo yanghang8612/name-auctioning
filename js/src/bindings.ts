@@ -89,7 +89,7 @@ export async function createNameAuction(
 
   let [auctionAccount, _] = await PublicKey.findProgramAddress(
     auctionSeeds,
-    PROGRAM_ID
+    AUCTION_PROGRAM_ID
   );
 
   let [stateAccount] = await PublicKey.findProgramAddress(
