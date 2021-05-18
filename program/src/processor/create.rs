@@ -99,25 +99,17 @@ pub fn process_create(
         return Err(ProgramError::AccountAlreadyInitialized);
     }
 
-    let mut signer_seeds = key.chunks(32).collect::<Vec<_>>();
-
-    msg!(
-        "Seeds length: {:?}, element length {:?}",
-        signer_seeds.len(),
-        signer_seeds[0].len()
-    );
+    let signer_seeds = name_account_key.to_bytes();
 
     let (derived_state_key, derived_signer_nonce) =
-        Pubkey::find_program_address(&signer_seeds, program_id);
-
-    let signer_nonce_singleton = [derived_signer_nonce];
-
-    signer_seeds.push(&signer_nonce_singleton);
+        Pubkey::find_program_address(&[&signer_seeds], program_id);
 
     if &derived_state_key != accounts.state.key {
         msg!("An invalid signer account was provided");
         return Err(ProgramError::InvalidArgument);
     }
+
+    let signer_seeds:&[&[u8]] = &[&signer_seeds, &[derived_signer_nonce]];
 
     Cpi::create_account(
         program_id,
@@ -125,7 +117,7 @@ pub fn process_create(
         accounts.fee_payer,
         accounts.state,
         accounts.rent_sysvar,
-        &signer_seeds,
+        signer_seeds,
         NameAuction::LEN,
     )?;
 

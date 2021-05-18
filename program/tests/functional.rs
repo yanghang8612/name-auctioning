@@ -197,7 +197,7 @@ async fn test() {
     // .unwrap();
 
     println!("{:?}", key.len());
-    let (derived_state_key, _) = Pubkey::find_program_address(&key.chunks(32).collect::<Vec<_>>(), &program_id);
+    let (derived_state_key, _) = Pubkey::find_program_address(&[&name_account.to_bytes()], &program_id);
 
     println!("Program Id: {:?}", program_id);
     println!("Root Name Account: {:?}", root_name_account_key);
