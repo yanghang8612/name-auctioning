@@ -3,12 +3,11 @@ import {
   Connection,
   PublicKey,
   SystemProgram,
-  CreateAccountParams,
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID, MintLayout, MintInfo } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
 import {
   BONFIDA_BNB,
   claimInstruction,
@@ -36,14 +35,15 @@ export const BASE_AUCTION_DATA_SIZE =
   32 + 32 + 32 + 9 + 9 + 9 + 9 + 1 + 32 + 1 + 8 + 8;
 
 export const ROOT_DOMAIN_ACCOUNT = new PublicKey(
-  "4MpujQVQLPPsC8ToEcSepSvtYCf5ZBf2odxZkZ2Qz8QH"
+  "AEa8qY21Pcbfp6cSxPByV7Gs4V8zwzm7JdYSq7TNGHZz"
+  // "4MpujQVQLPPsC8ToEcSepSvtYCf5ZBf2odxZkZ2Qz8QH"
 );
 
-const SLOT_SIZE = 33;
+// const SLOT_SIZE = 33;
 
 export type PrimedTransaction = [Account[], TransactionInstruction[]];
 
-const MARKET_STATE_SPACE = 5000; // Size enough for more than 40 active leverage types with 10 memory pages each.
+// const MARKET_STATE_SPACE = 5000; // Size enough for more than 40 active leverage types with 10 memory pages each.
 
 export async function initCentralState(
   feePayer: PublicKey
@@ -69,20 +69,30 @@ export async function initCentralState(
 }
 
 export async function createNameAuction(
-  connection: Connection,
   name: string,
   feePayer: PublicKey,
   quoteMint: PublicKey
 ): Promise<PrimedTransaction> {
   let hashedName = await getHashedName(name);
 
-  let nameAccount = await getNameAccountKey(hashedName, undefined, ROOT_DOMAIN_ACCOUNT);
+  let nameAccount = await getNameAccountKey(
+    hashedName,
+    undefined,
+    ROOT_DOMAIN_ACCOUNT
+  );
 
-  let auctionSeeds = [Buffer.from("auction", "utf-8"), AUCTION_PROGRAM_ID.toBuffer(), nameAccount.toBuffer()];
+  let auctionSeeds = [
+    Buffer.from("auction", "utf-8"),
+    AUCTION_PROGRAM_ID.toBuffer(),
+    nameAccount.toBuffer(),
+  ];
 
-  let [auctionAccount, _] = await PublicKey.findProgramAddress(auctionSeeds, PROGRAM_ID);
+  let [auctionAccount, _] = await PublicKey.findProgramAddress(
+    auctionSeeds,
+    PROGRAM_ID
+  );
 
-  let [stateAccount, signerNonce] = await PublicKey.findProgramAddress(
+  let [stateAccount] = await PublicKey.findProgramAddress(
     [nameAccount.toBuffer()],
     PROGRAM_ID
   );
@@ -121,7 +131,7 @@ export async function claimName(
   lamports: BN,
   space: number
 ): Promise<PrimedTransaction> {
-  let [centralState, stateNonce] = await PublicKey.findProgramAddress(
+  let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
     PROGRAM_ID
   );
