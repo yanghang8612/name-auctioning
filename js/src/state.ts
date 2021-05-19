@@ -1,7 +1,7 @@
-import { PublicKey, Connection } from "@solana/web3.js";
-import { Schema, deserializeUnchecked } from "borsh";
-import { getHashedName, getNameAccountKey } from "@bonfida/spl-name-service";
-import { ROOT_DOMAIN_ACCOUNT, AUCTION_PROGRAM_ID } from "./bindings";
+import { PublicKey, Connection } from '@solana/web3.js';
+import { Schema, deserializeUnchecked } from 'borsh';
+import { getHashedName, getNameAccountKey } from '@bonfida/spl-name-service';
+import { ROOT_DOMAIN_ACCOUNT, AUCTION_PROGRAM_ID } from './bindings';
 
 export class NameAuction {
   isInitialized: number;
@@ -13,12 +13,12 @@ export class NameAuction {
     [
       NameAuction,
       {
-        kind: "struct",
+        kind: 'struct',
         fields: [
-          ["isInitialized", "u8"],
-          ["quoteMint", [32]],
-          ["signerNonce", "u8"],
-          ["auctionAccount", [32]],
+          ['isInitialized', 'u8'],
+          ['quoteMint', [32]],
+          ['signerNonce', 'u8'],
+          ['auctionAccount', [32]],
         ],
       },
     ],
@@ -48,7 +48,7 @@ export class NameAuction {
       ROOT_DOMAIN_ACCOUNT
     );
     let auctionSeeds = [
-      Buffer.from("auction", "utf-8"),
+      Buffer.from('auction', 'utf-8'),
       AUCTION_PROGRAM_ID.toBuffer(),
       nameAccount.toBuffer(),
     ];
@@ -56,9 +56,9 @@ export class NameAuction {
       auctionSeeds,
       AUCTION_PROGRAM_ID
     );
-    let data = await connection.getAccountInfo(auctionAccount, "processed");
+    let data = await connection.getAccountInfo(auctionAccount, 'processed');
     if (data === null) {
-      throw new Error("No name auction found");
+      throw new Error('No name auction found');
     }
 
     let res: NameAuction = deserializeUnchecked(
