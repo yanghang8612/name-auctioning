@@ -1,25 +1,27 @@
 import { PublicKey, Connection } from "@solana/web3.js";
 import { Schema, deserializeUnchecked } from "borsh";
 import { getHashedName, getNameAccountKey } from "@bonfida/spl-name-service";
-import { ROOT_DOMAIN_ACCOUNT } from "./bindings";
+import { ROOT_DOMAIN_ACCOUNT, AUCTION_PROGRAM_ID } from "./bindings";
 
 export class NameAuction {
   isInitialized: number;
   quoteMint: PublicKey;
   signerNonce: number;
   auctionAccount: PublicKey;
-  //@ts-ignore
+
   static schema: Schema = new Map([
-    NameAuction,
-    {
-      kind: "struct",
-      fields: [
-        ["isInitialized", "u8"],
-        ["quoteMint", [32]],
-        ["signerNonce", "u8"],
-        ["auctionAccount", [32]],
-      ],
-    },
+    [
+      NameAuction,
+      {
+        kind: "struct",
+        fields: [
+          ["isInitialized", "u8"],
+          ["quoteMint", [32]],
+          ["signerNonce", "u8"],
+          ["auctionAccount", [32]],
+        ],
+      },
+    ],
   ]);
 
   constructor(obj: {
@@ -40,9 +42,21 @@ export class NameAuction {
   ): Promise<NameAuction> {
     let hashedName = await getHashedName(name);
 
-    let nameAccount = await getNameAccountKey(hashedName, ROOT_DOMAIN_ACCOUNT);
-
-    let data = await connection.getAccountInfo(nameAccount, "processed");
+    let nameAccount = await getNameAccountKey(
+      hashedName,
+      undefined,
+      ROOT_DOMAIN_ACCOUNT
+    );
+    let auctionSeeds = [
+      Buffer.from("auction", "utf-8"),
+      AUCTION_PROGRAM_ID.toBuffer(),
+      nameAccount.toBuffer(),
+    ];
+    let [auctionAccount] = await PublicKey.findProgramAddress(
+      auctionSeeds,
+      AUCTION_PROGRAM_ID
+    );
+    let data = await connection.getAccountInfo(auctionAccount, "processed");
     if (data === null) {
       throw new Error("No name auction found");
     }
