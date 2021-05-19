@@ -17,8 +17,8 @@ pub const PRICE_INCREMENT_MARGIN: u64 = 429496729; // 1% bid increment
 pub const END_AUCTION_GAP: u64 = 3600;
 pub const TOKEN_MINT: &str = "2gsgrFTjFsckJiPifzkHP3tznMuqVbh5TTUcVd3iMVQx"; // USDC mint
 pub const MINIMUM_PRICE: u64 = 1_000_000;
-pub const AUCTION_MAX_LENGTH: u64 = 604_800; // One week in seconds
-pub const BONFIDA_VAULT: &str = "BJa7dq3bRP216zaTdw4cdcV71WkPc1HXvmnGeFVDi5DC";
+pub const AUCTION_MAX_LENGTH: u64 = 600; // Ten minutes in seconds
+pub const BONFIDA_VAULT: &str = "8KHHeZBY9cTw9CySFzWK6JoQTwy4i7ufwTafxpd4cFua";
 pub struct Processor {}
 
 impl Processor {
@@ -47,7 +47,13 @@ impl Processor {
                 space,
             } => {
                 msg!("Instruction: Claim");
-                process_claim(program_id, accounts, Vec::from(hashed_name), lamports, space)?;
+                process_claim(
+                    program_id,
+                    accounts,
+                    Vec::from(hashed_name),
+                    lamports,
+                    space,
+                )?;
             }
         }
         Ok(())
