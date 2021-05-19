@@ -6,36 +6,36 @@ import {
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
-} from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+} from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
   BONFIDA_BNB,
   claimInstruction,
   createInstruction,
   initInstruction,
-} from "./instructions";
-import BN from "bn.js";
-import { getHashedName, getNameAccountKey } from "@bonfida/spl-name-service";
-import { NameAuction } from "./state";
+} from './instructions';
+import BN from 'bn.js';
+import { getHashedName, getNameAccountKey } from '@bonfida/spl-name-service';
+import { NameAuction } from './state';
 
 // devnet
 export const PROGRAM_ID = new PublicKey(
-  "jCebN34bUfdeUYJT13J1yG16XWQpt5PDx6Mse9GUqhR"
+  'jCebN34bUfdeUYJT13J1yG16XWQpt5PDx6Mse9GUqhR'
 );
 
 export const NAMING_SERVICE_PROGRAM_ID = new PublicKey(
-  "namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX"
+  'namesLPneVptA9Z5rqUDD9tMTWEJwofgaYwp8cawRkX'
 );
 
 export const AUCTION_PROGRAM_ID = new PublicKey(
-  "D9uCagAnYcETohUeg4CkrYHTMYZ3hAW8bToAFSEfAYw"
+  'D9uCagAnYcETohUeg4CkrYHTMYZ3hAW8bToAFSEfAYw'
 );
 
 export const BASE_AUCTION_DATA_SIZE =
   32 + 32 + 32 + 9 + 9 + 9 + 9 + 1 + 32 + 1 + 8 + 8;
 
 export const ROOT_DOMAIN_ACCOUNT = new PublicKey(
-  "AEa8qY21Pcbfp6cSxPByV7Gs4V8zwzm7JdYSq7TNGHZz"
+  'AEa8qY21Pcbfp6cSxPByV7Gs4V8zwzm7JdYSq7TNGHZz'
   // "4MpujQVQLPPsC8ToEcSepSvtYCf5ZBf2odxZkZ2Qz8QH"
 );
 
@@ -82,7 +82,7 @@ export async function createNameAuction(
   );
 
   let auctionSeeds = [
-    Buffer.from("auction", "utf-8"),
+    Buffer.from('auction', 'utf-8'),
     AUCTION_PROGRAM_ID.toBuffer(),
     nameAccount.toBuffer(),
   ];
@@ -138,7 +138,11 @@ export async function claimName(
 
   let hashedName = await getHashedName(name);
 
-  let nameAccount = await getNameAccountKey(hashedName, ROOT_DOMAIN_ACCOUNT);
+  const nameAccount = await getNameAccountKey(
+    hashedName,
+    undefined,
+    ROOT_DOMAIN_ACCOUNT
+  );
 
   let state = await NameAuction.retrieve(connection, name);
 
