@@ -1,6 +1,16 @@
 use std::str::FromStr;
 
-use solana_program::{account_info::AccountInfo, entrypoint::ProgramResult, program::{invoke, invoke_signed}, program_error::ProgramError, program_pack::Pack, pubkey::Pubkey, rent::Rent, system_instruction::create_account, sysvar::Sysvar};
+use solana_program::{
+    account_info::AccountInfo,
+    entrypoint::ProgramResult,
+    program::{invoke, invoke_signed},
+    program_error::ProgramError,
+    program_pack::Pack,
+    pubkey::Pubkey,
+    rent::Rent,
+    system_instruction::create_account,
+    sysvar::Sysvar,
+};
 use spl_auction::{
     instruction::{claim_bid_instruction, create_auction_instruction, start_auction_instruction},
     processor::{ClaimBidArgs, CreateAuctionArgs, PriceFloor, StartAuctionArgs, WinnerLimit},
@@ -62,8 +72,8 @@ impl Cpi {
             *fee_payer.key,
             CreateAuctionArgs {
                 winners: WinnerLimit::Capped(1),
-                end_auction_at: end_auction_at,
-                end_auction_gap: Some(END_AUCTION_GAP),
+                end_auction_at: end_auction_at.map(|n| n as i64),
+                end_auction_gap: Some(END_AUCTION_GAP as i64),
                 token_mint: Pubkey::from_str(TOKEN_MINT).unwrap(),
                 authority: *authority.key,
                 resource,

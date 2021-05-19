@@ -17,7 +17,7 @@ use crate::{
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
 
-use super::BONFIDA_VAULT;
+use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT};
 
 struct Accounts<'a, 'b: 'a> {
     clock_sysvar: &'a AccountInfo<'b>,
@@ -61,13 +61,14 @@ fn parse_accounts<'a, 'b: 'a>(
         bidder_pot: next_account_info(accounts_iter)?,
         bidder_pot_token: next_account_info(accounts_iter)?,
     };
+    let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
     check_account_key(a.spl_token_program, &spl_token::id()).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
-    check_account_key(a.auction_program, &spl_auction::id()).unwrap();
-    check_account_owner(a.auction, &spl_auction::id()).unwrap();
+    check_account_key(a.auction_program, spl_auction_id).unwrap();
+    check_account_owner(a.auction, spl_auction_id).unwrap();
     check_account_owner(a.central_state, &program_id).unwrap();
     check_account_owner(a.state, &program_id).unwrap();
     check_account_key(a.bonfida_vault, &Pubkey::from_str(BONFIDA_VAULT).unwrap()).unwrap();
