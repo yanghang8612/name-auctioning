@@ -30,11 +30,11 @@ export async function findEndingAuctions(
   connection: Connection,
   interval: number // Interval of time in seconds within which we're looking for expiring auctions
 ): Promise<{ publicKey: PublicKey; accountInfo: AccountInfo<Buffer> }[]> {
-  const currentTime = new Date().getSeconds();
+  const currentTime = new Date().getTime() / 1000;
   const maxTime = currentTime + interval;
   const timeMask = new BN(currentTime ^ maxTime);
   const truncateN = timeMask.byteLength();
-  const timeMaskBytes = timeMask.toBuffer('le', 8).slice(truncateN);
+  const timeMaskBytes = timeMask.toArrayLike(Buffer, 'le', 8).slice(truncateN);
   let filters = [
     {
       memcmp: {
