@@ -16,6 +16,7 @@ import {
 } from './instructions';
 import BN from 'bn.js';
 import { NameAuction } from './state';
+import { getHashedName, getNameAccountKey } from '@bonfida/spl-name-service';
 
 // devnet
 export const PROGRAM_ID = new PublicKey(
@@ -69,11 +70,16 @@ export async function initCentralState(
 
 export async function createNameAuction(
   nameAccount: PublicKey,
-  hashedName: Buffer,
+  name: string,
   feePayer: PublicKey,
   quoteMint: PublicKey,
   tldAuthority: PublicKey
 ): Promise<PrimedTransaction> {
+  let [centralState] = await PublicKey.findProgramAddress(
+    [PROGRAM_ID.toBuffer()],
+    PROGRAM_ID
+  );
+
   let auctionSeeds = [
     Buffer.from('auction', 'utf-8'),
     AUCTION_PROGRAM_ID.toBuffer(),
@@ -90,8 +96,14 @@ export async function createNameAuction(
     PROGRAM_ID
   );
 
+  let hashedReverseLookup = await getHashedName(nameAccount.toBase58());
+  let reverseLookupAccount = await getNameAccountKey(
+    hashedReverseLookup,
+    centralState
+  );
+
   let initCentralStateInstruction = new createInstruction({
-    hashedName: hashedName,
+    name,
   }).getInstruction(
     PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
@@ -99,9 +111,11 @@ export async function createNameAuction(
     NAMING_SERVICE_PROGRAM_ID,
     tldAuthority,
     nameAccount,
+    reverseLookupAccount,
     SystemProgram.programId,
     AUCTION_PROGRAM_ID,
     auctionAccount,
+    centralState,
     stateAccount,
     feePayer,
     quoteMint
@@ -115,7 +129,7 @@ export async function createNameAuction(
 export async function claimName(
   connection: Connection,
   nameAccount: PublicKey,
-  hashedName: Buffer,
+  name: string,
   feePayer: PublicKey,
   quoteMint: PublicKey,
   bidderWallet: PublicKey,
@@ -137,8 +151,10 @@ export async function claimName(
     PROGRAM_ID
   );
 
+  let hashed_name = await getHashedName(name);
+
   let claimNameInstruction = new claimInstruction({
-    hashedName,
+    hashed_name,
     lamports,
     space,
   }).getInstruction(

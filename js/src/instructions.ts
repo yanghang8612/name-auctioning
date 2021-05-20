@@ -84,7 +84,7 @@ export class initInstruction {
 
 export class createInstruction {
   tag: number;
-  hashedName: Uint8Array;
+  name: string;
 
   static schema: Schema = new Map([
     [
@@ -93,15 +93,15 @@ export class createInstruction {
         kind: 'struct',
         fields: [
           ['tag', 'u8'],
-          ['hashedName', [32]],
+          ['name', 'string'],
         ],
       },
     ],
   ]);
 
-  constructor(obj: { hashedName: Uint8Array }) {
+  constructor(obj: { name: string }) {
     this.tag = 1;
-    this.hashedName = obj.hashedName;
+    this.name = obj.name;
   }
 
   serialize(): Uint8Array {
@@ -115,9 +115,11 @@ export class createInstruction {
     namingServiceProgram: PublicKey,
     rootDomain: PublicKey,
     nameAccount: PublicKey,
+    reverseLookupAccount: PublicKey,
     systemProgram: PublicKey,
     auctionProgram: PublicKey,
     auctionAccount: PublicKey,
+    centralStateAccount: PublicKey,
     stateAccount: PublicKey,
     feePayer: PublicKey,
     quoteMint: PublicKey
@@ -150,6 +152,11 @@ export class createInstruction {
         isWritable: false,
       },
       {
+        pubkey: reverseLookupAccount,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
         pubkey: systemProgram,
         isSigner: false,
         isWritable: false,
@@ -161,6 +168,11 @@ export class createInstruction {
       },
       {
         pubkey: auctionAccount,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: centralStateAccount,
         isSigner: false,
         isWritable: true,
       },
@@ -191,7 +203,7 @@ export class createInstruction {
 
 export class claimInstruction {
   tag: number;
-  hashedName: Uint8Array;
+  hashed_name: Uint8Array;
   lamports: BN;
   space: number;
 
@@ -202,7 +214,7 @@ export class claimInstruction {
         kind: 'struct',
         fields: [
           ['tag', 'u8'],
-          ['hashedName', [32]],
+          ['hashed_name', [32]],
           ['lamports', 'u64'],
           ['space', 'u32'],
         ],
@@ -210,9 +222,9 @@ export class claimInstruction {
     ],
   ]);
 
-  constructor(obj: { hashedName: Uint8Array; lamports: BN; space: number }) {
+  constructor(obj: { hashed_name: Uint8Array; lamports: BN; space: number }) {
     this.tag = 2;
-    this.hashedName = obj.hashedName;
+    this.hashed_name = obj.hashed_name;
     this.lamports = obj.lamports;
     this.space = obj.space;
   }

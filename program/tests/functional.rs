@@ -3,7 +3,7 @@ use std::{convert::TryInto, str::FromStr};
 
 use name_auctioning::{
     instructions::{create, init},
-    processor::{BONFIDA_VAULT, TOKEN_MINT},
+    processor::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, TOKEN_MINT},
 };
 use solana_program::{
     hash::hashv, instruction::Instruction, program_option::COption, program_pack::Pack,
@@ -16,7 +16,7 @@ use solana_sdk::{
     transaction::Transaction,
     transport::TransportError,
 };
-use spl_auction::{PREFIX, processor::BASE_AUCTION_DATA_SIZE};
+use spl_auction::{processor::BASE_AUCTION_DATA_SIZE, PREFIX};
 use spl_name_service::{
     instruction::NameRegistryInstruction,
     state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX},
@@ -34,12 +34,13 @@ async fn test() {
         // processor!(name_auctioning::entrypoint::process_instruction),
         None,
     );
+    let auction_program_id = Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     program_test.add_program("spl_name_service", spl_name_service::id(), None);
     program_test.add_program(
         "spl_auction",
-        spl_auction::id(),
+        auction_program_id,
         // processor!(spl_auction::processor::process_instruction),
-        None
+        None,
     );
 
     let mut mint_data = vec![0u8; Mint::LEN];
@@ -87,7 +88,7 @@ async fn test() {
         },
     );
 
-    let (derived_state_key, state_nonce) =
+    let (derived_central_state_key, state_nonce) =
         Pubkey::find_program_address(&[&program_id.to_bytes()], &program_id);
 
     // program_test.add_account(
@@ -105,7 +106,7 @@ async fn test() {
 
     let init_instruction = init(
         program_id,
-        derived_state_key,
+        derived_central_state_key,
         ctx.payer.pubkey(),
         state_nonce,
     );
@@ -135,7 +136,7 @@ async fn test() {
         },
         root_name_account_key,
         ctx.payer.pubkey(),
-        derived_state_key,
+        derived_central_state_key,
         None,
         None,
         None,
@@ -161,7 +162,7 @@ async fn test() {
     let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + test_name).as_bytes()])
         .0
         .to_vec();
-    
+
     println!("Hashed name length {:?}", hashed_name.len());
 
     let (name_account, key) = get_seeds_and_key(
@@ -173,10 +174,11 @@ async fn test() {
 
     let auction_seeds = &[
         PREFIX.as_bytes(),
-        &spl_auction::id().to_bytes(),
+        &auction_program_id.to_bytes(),
         name_account.as_ref(),
     ];
-    let (auction_account, auction_nonce) = Pubkey::find_program_address(auction_seeds, &spl_auction::id());
+    let (auction_account, auction_nonce) =
+        Pubkey::find_program_address(auction_seeds, &&auction_program_id);
 
     let rent = ctx.banks_client.get_rent().await.unwrap();
 
@@ -185,7 +187,7 @@ async fn test() {
     //     &auction_account.pubkey(),
     //     rent.minimum_balance(BASE_AUCTION_DATA_SIZE),
     //     BASE_AUCTION_DATA_SIZE as u64,
-    //     &spl_auction::id(),
+    //     &&auction_program_id,
     // );
 
     // sign_send_instruction(
@@ -197,7 +199,8 @@ async fn test() {
     // .unwrap();
 
     println!("{:?}", key.len());
-    let (derived_state_key, _) = Pubkey::find_program_address(&[&name_account.to_bytes()], &program_id);
+    let (derived_state_key, _) =
+        Pubkey::find_program_address(&[&name_account.to_bytes()], &program_id);
 
     println!("Program Id: {:?}", program_id);
     println!("Root Name Account: {:?}", root_name_account_key);
@@ -207,18 +210,35 @@ async fn test() {
     println!("Payer account: {:?}", ctx.payer.pubkey());
     println!("Quote mint: {:?}", TOKEN_MINT);
 
+    let hashed_reverse_lookup =
+        hashv(&[(HASH_PREFIX.to_owned() + &name_account.to_string()).as_bytes()])
+            .0
+            .to_vec();
+
+    let (reverse_lookup_account_key, _) = get_seeds_and_key(
+        &spl_name_service::id(),
+        hashed_reverse_lookup.clone(),
+        Some(&derived_central_state_key),
+        None,
+    );
+
     let create_naming_auction_instruction = create(
         program_id,
+        auction_program_id,
         root_name_account_key,
         name_account,
+        reverse_lookup_account_key,
         auction_account,
+        derived_central_state_key,
         derived_state_key,
         ctx.payer.pubkey(),
         Pubkey::from_str(TOKEN_MINT).unwrap(),
-        hashed_name.try_into().unwrap()
+        test_name.to_owned(),
     );
 
-    sign_send_instruction(&mut ctx, create_naming_auction_instruction, vec![]).await.unwrap();
+    sign_send_instruction(&mut ctx, create_naming_auction_instruction, vec![])
+        .await
+        .unwrap();
 }
 
 // Utils

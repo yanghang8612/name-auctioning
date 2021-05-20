@@ -9,7 +9,7 @@ pub struct NameAuction {
     pub is_initialized: bool,
     pub quote_mint: [u8; 32],
     pub signer_nonce: u8,
-    pub auction_account: [u8;32]
+    pub auction_account: [u8; 32],
 }
 
 impl Sealed for NameAuction {}
@@ -48,4 +48,9 @@ impl Pack for CentralState {
         let res = Self::deserialize(&mut pt)?;
         Ok(res)
     }
+}
+
+#[derive(BorshDeserialize, BorshSerialize)]
+pub struct ReverseLookup {
+    pub name: String,
 }

@@ -86,12 +86,7 @@ pub fn process_claim(
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
 
-    if hashed_name.len() != 32 {
-        msg!("Invalid seed length");
-        return Err(ProgramError::InvalidArgument);
-    }
-
-    let (name_account_key, key) = get_seeds_and_key(
+    let (name_account_key, _) = get_seeds_and_key(
         accounts.naming_service_program.key,
         hashed_name.clone(),
         None,
@@ -122,6 +117,10 @@ pub fn process_claim(
         return Err(ProgramError::InvalidArgument);
     }
 
+    let central_state_nonce = accounts.central_state.data.borrow()[0];
+
+    let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
+
     Cpi::claim_auction(
         accounts.spl_token_program,
         accounts.auction_program,
@@ -148,7 +147,7 @@ pub fn process_claim(
         hashed_name,
         lamports,
         space,
-        signer_seeds,
+        central_state_signer_seeds,
     )?;
 
     Ok(())

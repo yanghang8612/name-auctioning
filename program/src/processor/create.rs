@@ -3,16 +3,15 @@ use std::str::FromStr;
 use borsh::BorshSerialize;
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
-    clock::Clock,
     entrypoint::ProgramResult,
+    hash::hashv,
     msg,
     program_error::ProgramError,
     program_pack::Pack,
     pubkey::Pubkey,
-    system_program,
-    sysvar::{self, Sysvar},
+    system_program, sysvar,
 };
-use spl_name_service::state::get_seeds_and_key;
+use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
 
 use crate::{
     state::NameAuction,
@@ -27,8 +26,10 @@ struct Accounts<'a, 'b: 'a> {
     naming_service_program: &'a AccountInfo<'b>,
     root_domain: &'a AccountInfo<'b>,
     name: &'a AccountInfo<'b>,
+    reverse_lookup: &'a AccountInfo<'b>,
     system_program: &'a AccountInfo<'b>,
     auction: &'a AccountInfo<'b>,
+    central_state: &'a AccountInfo<'b>,
     state: &'a AccountInfo<'b>,
     auction_program: &'a AccountInfo<'b>,
     fee_payer: &'a AccountInfo<'b>,
@@ -36,7 +37,7 @@ struct Accounts<'a, 'b: 'a> {
 }
 
 fn parse_accounts<'a, 'b: 'a>(
-    _program_id: &Pubkey,
+    program_id: &Pubkey,
     accounts: &'a [AccountInfo<'b>],
 ) -> Result<Accounts<'a, 'b>, ProgramError> {
     let accounts_iter = &mut accounts.iter();
@@ -46,9 +47,11 @@ fn parse_accounts<'a, 'b: 'a>(
         naming_service_program: next_account_info(accounts_iter)?,
         root_domain: next_account_info(accounts_iter)?,
         name: next_account_info(accounts_iter)?,
+        reverse_lookup: next_account_info(accounts_iter)?,
         system_program: next_account_info(accounts_iter)?,
         auction_program: next_account_info(accounts_iter)?,
         auction: next_account_info(accounts_iter)?,
+        central_state: next_account_info(accounts_iter)?,
         state: next_account_info(accounts_iter)?,
         fee_payer: next_account_info(accounts_iter)?,
         quote_mint: next_account_info(accounts_iter)?,
@@ -59,6 +62,7 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
+    check_account_owner(a.central_state, &program_id).unwrap();
     check_account_key(
         a.auction_program,
         &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap(),
@@ -74,16 +78,20 @@ fn parse_accounts<'a, 'b: 'a>(
 pub fn process_create(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    hashed_name: Vec<u8>,
+    name: String,
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
+
+    let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + &name).as_bytes()])
+        .0
+        .to_vec();
 
     if hashed_name.len() != 32 {
         msg!("Invalid seed length");
         return Err(ProgramError::InvalidArgument);
     }
 
-    let (name_account_key, key) = get_seeds_and_key(
+    let (name_account_key, _) = get_seeds_and_key(
         accounts.naming_service_program.key,
         hashed_name,
         None,
@@ -105,6 +113,23 @@ pub fn process_create(
         return Err(ProgramError::AccountAlreadyInitialized);
     }
 
+    let hashed_reverse_lookup =
+        hashv(&[(HASH_PREFIX.to_owned() + &name_account_key.to_string()).as_bytes()])
+            .0
+            .to_vec();
+
+    let (reverse_lookup_account_key, _) = get_seeds_and_key(
+        accounts.naming_service_program.key,
+        hashed_reverse_lookup.clone(),
+        Some(accounts.central_state.key),
+        None,
+    );
+
+    if &reverse_lookup_account_key != accounts.reverse_lookup.key {
+        msg!("Provided wrong reverse lookup account");
+        return Err(ProgramError::InvalidArgument);
+    }
+
     let signer_seeds = name_account_key.to_bytes();
 
     let (derived_state_key, derived_signer_nonce) =
@@ -117,6 +142,10 @@ pub fn process_create(
 
     let signer_seeds: &[&[u8]] = &[&signer_seeds, &[derived_signer_nonce]];
 
+    let central_state_nonce = accounts.central_state.data.borrow()[0];
+
+    let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
+
     Cpi::create_account(
         program_id,
         accounts.system_program,
@@ -126,9 +155,7 @@ pub fn process_create(
         signer_seeds,
         NameAuction::LEN,
     )?;
-
-    let current_timestamp = Clock::from_account_info(accounts.clock_sysvar)?.unix_timestamp as u64;
-    let end_auction_at = Some(current_timestamp + AUCTION_MAX_LENGTH);
+    let end_auction_at = Some(AUCTION_MAX_LENGTH);
 
     let state = NameAuction {
         is_initialized: true,
@@ -165,6 +192,18 @@ pub fn process_create(
         accounts.state,
         *accounts.name.key,
         &signer_seeds,
+    )?;
+
+    Cpi::create_reverse_lookup_account(
+        accounts.naming_service_program,
+        accounts.system_program,
+        accounts.reverse_lookup,
+        accounts.fee_payer,
+        name,
+        hashed_reverse_lookup,
+        accounts.central_state,
+        accounts.rent_sysvar,
+        central_state_signer_seeds,
     )?;
 
     Ok(())
