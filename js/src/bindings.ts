@@ -15,7 +15,6 @@ import {
   initInstruction,
 } from './instructions';
 import BN from 'bn.js';
-import { getHashedName, getNameAccountKey } from '@bonfida/spl-name-service';
 import { NameAuction } from './state';
 
 // devnet
@@ -35,7 +34,7 @@ export const BASE_AUCTION_DATA_SIZE =
   32 + 32 + 32 + 9 + 9 + 9 + 9 + 1 + 32 + 1 + 8 + 8;
 
 export const ROOT_DOMAIN_ACCOUNT = new PublicKey(
-  'AEa8qY21Pcbfp6cSxPByV7Gs4V8zwzm7JdYSq7TNGHZz'
+  '98vSQyPBwaG8wFnGJesg6BX2kThhrbbx5MReMd7WDDC3'
   // "4MpujQVQLPPsC8ToEcSepSvtYCf5ZBf2odxZkZ2Qz8QH"
 );
 
@@ -69,18 +68,12 @@ export async function initCentralState(
 }
 
 export async function createNameAuction(
-  name: string,
+  nameAccount: PublicKey,
+  hashedName: Buffer,
   feePayer: PublicKey,
-  quoteMint: PublicKey
+  quoteMint: PublicKey,
+  tldAuthority: PublicKey
 ): Promise<PrimedTransaction> {
-  let hashedName = await getHashedName(name);
-
-  let nameAccount = await getNameAccountKey(
-    hashedName,
-    undefined,
-    ROOT_DOMAIN_ACCOUNT
-  );
-
   let auctionSeeds = [
     Buffer.from('auction', 'utf-8'),
     AUCTION_PROGRAM_ID.toBuffer(),
@@ -104,7 +97,7 @@ export async function createNameAuction(
     SYSVAR_RENT_PUBKEY,
     SYSVAR_CLOCK_PUBKEY,
     NAMING_SERVICE_PROGRAM_ID,
-    ROOT_DOMAIN_ACCOUNT,
+    tldAuthority,
     nameAccount,
     SystemProgram.programId,
     AUCTION_PROGRAM_ID,
@@ -121,30 +114,23 @@ export async function createNameAuction(
 
 export async function claimName(
   connection: Connection,
-  name: string,
+  nameAccount: PublicKey,
+  hashedName: Buffer,
   feePayer: PublicKey,
   quoteMint: PublicKey,
   bidderWallet: PublicKey,
   bidderPot: PublicKey,
   bidderPotTokenAccount: PublicKey,
-
   lamports: BN,
-  space: number
+  space: number,
+  tldAuthority: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
     PROGRAM_ID
   );
 
-  let hashedName = await getHashedName(name);
-
-  const nameAccount = await getNameAccountKey(
-    hashedName,
-    undefined,
-    ROOT_DOMAIN_ACCOUNT
-  );
-
-  let state = await NameAuction.retrieve(connection, name);
+  let state = await NameAuction.retrieve(connection, nameAccount);
 
   let [stateAccount, _] = await PublicKey.findProgramAddress(
     [nameAccount.toBuffer()],
@@ -160,7 +146,7 @@ export async function claimName(
     TOKEN_PROGRAM_ID,
     SYSVAR_CLOCK_PUBKEY,
     NAMING_SERVICE_PROGRAM_ID,
-    ROOT_DOMAIN_ACCOUNT,
+    tldAuthority,
     nameAccount,
     SystemProgram.programId,
     AUCTION_PROGRAM_ID,

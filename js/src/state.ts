@@ -1,11 +1,6 @@
 import { PublicKey, Connection } from '@solana/web3.js';
 import { Schema, deserializeUnchecked } from 'borsh';
-import { getHashedName, getNameAccountKey } from '@bonfida/spl-name-service';
-import {
-  ROOT_DOMAIN_ACCOUNT,
-  AUCTION_PROGRAM_ID,
-  PROGRAM_ID,
-} from './bindings';
+import { PROGRAM_ID } from './bindings';
 
 export class NameAuction {
   isInitialized: number;
@@ -42,16 +37,8 @@ export class NameAuction {
 
   static async retrieve(
     connection: Connection,
-    name: string
+    nameAccount: PublicKey
   ): Promise<NameAuction> {
-    let hashedName = await getHashedName(name);
-
-    let nameAccount = await getNameAccountKey(
-      hashedName,
-      undefined,
-      ROOT_DOMAIN_ACCOUNT
-    );
-
     let [stateAccount] = await PublicKey.findProgramAddress(
       [nameAccount.toBuffer()],
       PROGRAM_ID

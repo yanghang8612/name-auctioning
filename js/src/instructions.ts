@@ -1,6 +1,6 @@
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import BN from "bn.js";
-import { Schema, serialize } from "borsh";
+import { PublicKey, TransactionInstruction } from '@solana/web3.js';
+import BN from 'bn.js';
+import { Schema, serialize } from 'borsh';
 
 export enum PositionType {
   Short = 0,
@@ -8,7 +8,7 @@ export enum PositionType {
 }
 
 export const BONFIDA_BNB = new PublicKey(
-  "FxqKVkCMtTVmJ6cEibvQeNJCtT4JWEzJzhZ3bFNmR6zu"
+  '8KHHeZBY9cTw9CySFzWK6JoQTwy4i7ufwTafxpd4cFua'
 );
 
 export class Instruction {
@@ -25,10 +25,10 @@ export class initInstruction {
     [
       initInstruction,
       {
-        kind: "struct",
+        kind: 'struct',
         fields: [
-          ["tag", "u8"],
-          ["stateNonce", "u8"],
+          ['tag', 'u8'],
+          ['stateNonce', 'u8'],
         ],
       },
     ],
@@ -90,10 +90,10 @@ export class createInstruction {
     [
       createInstruction,
       {
-        kind: "struct",
+        kind: 'struct',
         fields: [
-          ["tag", "u8"],
-          ["hashedName", [32]],
+          ['tag', 'u8'],
+          ['hashedName', [32]],
         ],
       },
     ],
@@ -199,12 +199,12 @@ export class claimInstruction {
     [
       claimInstruction,
       {
-        kind: "struct",
+        kind: 'struct',
         fields: [
-          ["tag", "u8"],
-          ["hashedName", [32]],
-          ["lamports", "u64"],
-          ["space", "u32"],
+          ['tag', 'u8'],
+          ['hashedName', [32]],
+          ['lamports', 'u64'],
+          ['space', 'u32'],
         ],
       },
     ],
