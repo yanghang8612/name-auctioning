@@ -38,13 +38,13 @@ export async function findEndingAuctions(
   let filters = [
     {
       memcmp: {
-        offset: 64,
-        bytes: '11',
+        offset: 96,
+        bytes: '1',
       },
     },
     {
       memcmp: {
-        offset: 67 + truncateN,
+        offset: 98 + truncateN,
         bytes: bs58.encode(timeMaskBytes),
       },
     },
@@ -57,19 +57,13 @@ export async function findEndingAuctions(
   filters = [
     {
       memcmp: {
-        offset: 64,
+        offset: 96,
         bytes: '2',
       },
     },
     {
       memcmp: {
-        offset: 73,
-        bytes: '1',
-      },
-    },
-    {
-      memcmp: {
-        offset: 75 + truncateN,
+        offset: 106 + truncateN,
         bytes: bs58.encode(timeMaskBytes),
       },
     },
