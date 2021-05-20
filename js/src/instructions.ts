@@ -154,7 +154,7 @@ export class createInstruction {
       {
         pubkey: reverseLookupAccount,
         isSigner: false,
-        isWritable: false,
+        isWritable: true,
       },
       {
         pubkey: systemProgram,
