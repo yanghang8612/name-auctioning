@@ -8,7 +8,7 @@ export enum PositionType {
 }
 
 export const BONFIDA_BNB = new PublicKey(
-  '8KHHeZBY9cTw9CySFzWK6JoQTwy4i7ufwTafxpd4cFua'
+  'DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7'
 );
 
 export class Instruction {
