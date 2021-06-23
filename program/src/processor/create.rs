@@ -150,6 +150,7 @@ pub fn process_create(
             *accounts.name.key,
             &signer_seeds,
         )?;
+        return Ok(());
     }
 
     if accounts.state.data_len() != 0 {
