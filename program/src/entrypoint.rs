@@ -29,6 +29,9 @@ impl PrintProgramError for NameAuctionError {
         match self {
             NameAuctionError::AuctionInProgress => msg!("Error: the auction is still in progress"),
             NameAuctionError::BidTooLow => msg!("Error: The bid price is too low"),
+            NameAuctionError::AuctionRealized => {
+                msg!("Error: The auction has already been run successfully")
+            }
         }
     }
 }

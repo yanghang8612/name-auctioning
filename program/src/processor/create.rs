@@ -3,17 +3,22 @@ use std::str::FromStr;
 use borsh::BorshSerialize;
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
+    borsh::try_from_slice_unchecked,
+    clock::Clock,
     entrypoint::ProgramResult,
     hash::hashv,
     msg,
     program_error::ProgramError,
     program_pack::Pack,
     pubkey::Pubkey,
-    system_program, sysvar,
+    system_program,
+    sysvar::{self, Sysvar},
 };
+use spl_auction::processor::{AuctionData, AuctionState, BidState};
 use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
 
 use crate::{
+    error::NameAuctionError,
     state::NameAuction,
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
@@ -103,9 +108,48 @@ pub fn process_create(
         return Err(ProgramError::InvalidArgument);
     }
 
+    let signer_seeds = name_account_key.to_bytes();
+
+    let (derived_state_key, derived_signer_nonce) =
+        Pubkey::find_program_address(&[&signer_seeds], program_id);
+
+    if &derived_state_key != accounts.state.key {
+        msg!("An invalid signer account was provided");
+        return Err(ProgramError::InvalidArgument);
+    }
+
+    let signer_seeds: &[&[u8]] = &[&signer_seeds, &[derived_signer_nonce]];
+
     if accounts.name.data_len() != 0 {
         msg!("Name account is already initialized.");
-        return Err(ProgramError::AccountAlreadyInitialized);
+        let state = NameAuction::unpack_unchecked(&accounts.name.data.borrow())?;
+        if accounts.auction.key != &Pubkey::new(&state.auction_account) {
+            msg!("Provided invalid auction account");
+            return Err(ProgramError::InvalidArgument);
+        }
+        let current_timestamp = Clock::from_account_info(accounts.clock_sysvar)?.unix_timestamp;
+        let auction: AuctionData = try_from_slice_unchecked(&accounts.auction.data.borrow())?;
+        if !auction.ended(current_timestamp)? {
+            msg!("The auction has to end before it can be restarted!");
+            return Err(NameAuctionError::AuctionInProgress.into());
+        }
+        match auction.bid_state {
+            BidState::EnglishAuction { bids, max: _ } => {
+                if !bids.is_empty() {
+                    msg!("The auction has a bidder, which means it has a winner and cannot be reset!");
+                    return Err(NameAuctionError::AuctionRealized.into());
+                }
+            }
+            _ => unreachable!(),
+        };
+        Cpi::start_auction(
+            accounts.auction_program,
+            accounts.clock_sysvar,
+            accounts.auction,
+            accounts.state,
+            *accounts.name.key,
+            &signer_seeds,
+        )?;
     }
 
     if accounts.state.data_len() != 0 {
@@ -129,18 +173,6 @@ pub fn process_create(
         msg!("Provided wrong reverse lookup account");
         return Err(ProgramError::InvalidArgument);
     }
-
-    let signer_seeds = name_account_key.to_bytes();
-
-    let (derived_state_key, derived_signer_nonce) =
-        Pubkey::find_program_address(&[&signer_seeds], program_id);
-
-    if &derived_state_key != accounts.state.key {
-        msg!("An invalid signer account was provided");
-        return Err(ProgramError::InvalidArgument);
-    }
-
-    let signer_seeds: &[&[u8]] = &[&signer_seeds, &[derived_signer_nonce]];
 
     let central_state_nonce = accounts.central_state.data.borrow()[0];
 
@@ -169,7 +201,8 @@ pub fn process_create(
         state.serialize(&mut pt)?;
     }
 
-    msg!("Setting up auction");
+    let auction_state = msg!("Setting up auction");
+    solana_program::log::sol_log_compute_units();
 
     Cpi::create_auction(
         accounts.auction_program,
@@ -182,6 +215,8 @@ pub fn process_create(
         *accounts.name.key,
         &signer_seeds,
     )?;
+
+    solana_program::log::sol_log_compute_units();
 
     msg!("Starting auction");
 

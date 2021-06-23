@@ -8,6 +8,8 @@ pub enum NameAuctionError {
     AuctionInProgress,
     #[error("The bid price is too low")]
     BidTooLow,
+    #[error("The auction has already been run successfully")]
+    AuctionRealized,
 }
 
 impl From<NameAuctionError> for ProgramError {
