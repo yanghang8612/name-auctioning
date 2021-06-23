@@ -202,7 +202,7 @@ pub fn process_create(
         state.serialize(&mut pt)?;
     }
 
-    let auction_state = msg!("Setting up auction");
+    msg!("Setting up auction");
     solana_program::log::sol_log_compute_units();
 
     Cpi::create_auction(
