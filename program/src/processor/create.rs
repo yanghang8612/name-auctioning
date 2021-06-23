@@ -14,7 +14,7 @@ use solana_program::{
     system_program,
     sysvar::{self, Sysvar},
 };
-use spl_auction::processor::{AuctionData, AuctionState, BidState};
+use spl_auction::processor::{AuctionData, BidState};
 use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
 
 use crate::{
@@ -214,7 +214,6 @@ pub fn process_create(
         end_auction_at,
         accounts.state,
         *accounts.name.key,
-        &signer_seeds,
     )?;
 
     solana_program::log::sol_log_compute_units();

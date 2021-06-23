@@ -66,7 +66,6 @@ impl Cpi {
         end_auction_at: Option<u64>,
         authority: &AccountInfo<'a>,
         resource: Pubkey,
-        signer_seeds: &[&[u8]],
     ) -> ProgramResult {
         let create_auction_instruction = create_auction_instruction(
             *auction_program.key,

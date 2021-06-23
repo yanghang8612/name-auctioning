@@ -1,5 +1,5 @@
 #![cfg(feature = "test-bpf")]
-use std::{convert::TryInto, str::FromStr};
+use std::str::FromStr;
 
 use name_auctioning::{
     instructions::{create, init},
@@ -7,16 +7,16 @@ use name_auctioning::{
 };
 use solana_program::{
     hash::hashv, instruction::Instruction, program_option::COption, program_pack::Pack,
-    pubkey::Pubkey, system_instruction, system_program,
+    pubkey::Pubkey,
 };
-use solana_program_test::{processor, ProgramTest, ProgramTestContext};
+use solana_program_test::{ProgramTest, ProgramTestContext};
 use solana_sdk::{
     account::Account,
     signature::{Keypair, Signer},
     transaction::Transaction,
     transport::TransportError,
 };
-use spl_auction::{processor::BASE_AUCTION_DATA_SIZE, PREFIX};
+use spl_auction::PREFIX;
 use spl_name_service::{
     instruction::NameRegistryInstruction,
     state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX},
@@ -177,10 +177,9 @@ async fn test() {
         &auction_program_id.to_bytes(),
         name_account.as_ref(),
     ];
-    let (auction_account, auction_nonce) =
-        Pubkey::find_program_address(auction_seeds, &&auction_program_id);
+    let (auction_account, _) = Pubkey::find_program_address(auction_seeds, &&auction_program_id);
 
-    let rent = ctx.banks_client.get_rent().await.unwrap();
+    // let rent = ctx.banks_client.get_rent().await.unwrap();
 
     // let allocate_auction_account_instruction = system_instruction::create_account(
     //     &ctx.payer.pubkey(),

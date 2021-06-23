@@ -4,7 +4,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     instruction::{AccountMeta, Instruction},
     pubkey::Pubkey,
-    rent, system_program, sysvar,
+    system_program, sysvar,
 };
 
 use crate::processor::BONFIDA_VAULT;
