@@ -74,7 +74,9 @@ fn parse_accounts<'a, 'b: 'a>(
     )
     .unwrap();
     // check_account_owner(a.auction, &spl_auction::id()).unwrap();
-    check_account_owner(a.state, &system_program::id()).unwrap();
+    check_account_owner(a.state, &system_program::id())
+        .or_else(|_| check_account_owner(a.state, program_id))
+        .unwrap();
     check_signer(a.fee_payer).unwrap();
 
     Ok(a)
