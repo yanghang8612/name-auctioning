@@ -98,9 +98,7 @@ export async function findOwnedNameAccountsForUser(
     NAME_SERVICE_PROGRAM_ID,
     filters
   );
-  return accounts.map((a) => {
-    return new PublicKey(a.accountInfo.data.slice(64, 96));
-  });
+  return accounts.map((a) => a.publicKey);
 }
 
 export async function performReverseLookup(
@@ -118,5 +116,7 @@ export async function performReverseLookup(
   );
 
   let name = await NameRegistryState.retrieve(connection, reverseLookupAccount);
-  return name.data.toString();
+  console.log(name.data);
+  let nameLength = name.data.slice(0, 4).readInt32LE();
+  return name.data.slice(4, 4 + nameLength).toString();
 }
