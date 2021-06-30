@@ -14,7 +14,7 @@ pub mod init;
 
 pub const OVERTIME_LENGTH: u64 = 900;
 pub const PRICE_INCREMENT_MARGIN: u64 = 429496729; // 1% bid increment
-pub const END_AUCTION_GAP: u64 = 10;
+pub const END_AUCTION_GAP: u64 = 600;
 pub const TOKEN_MINT: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"; // USDC mint
 pub const MINIMUM_PRICE: u64 = 20_000_000;
 pub const AUCTION_PROGRAM_ID: &str = "AVWV7vdWbLqXiLKFaP19GhYurhwxaLp2qRBSjT5tR5vT";

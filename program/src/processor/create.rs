@@ -122,15 +122,21 @@ pub fn process_create(
 
     let signer_seeds: &[&[u8]] = &[&signer_seeds, &[derived_signer_nonce]];
 
-    if accounts.name.data_len() != 0 {
-        msg!("Name account is already initialized.");
-        let state = NameAuction::unpack_unchecked(&accounts.name.data.borrow())?;
+    if accounts.state.data_len() != 0 {
+        msg!("An auction for this name has already been created.");
+
+        if accounts.name.data_len() != 0 {
+            msg!("Name account is already initialized.");
+            return Err(ProgramError::AccountAlreadyInitialized);
+        }
+        let state = NameAuction::unpack_unchecked(&accounts.state.data.borrow()).unwrap();
         if accounts.auction.key != &Pubkey::new(&state.auction_account) {
             msg!("Provided invalid auction account");
             return Err(ProgramError::InvalidArgument);
         }
         let current_timestamp = Clock::from_account_info(accounts.clock_sysvar)?.unix_timestamp;
-        let auction: AuctionData = try_from_slice_unchecked(&accounts.auction.data.borrow())?;
+        let auction: AuctionData =
+            try_from_slice_unchecked(&accounts.auction.data.borrow()).unwrap();
         if !auction.ended(current_timestamp)? {
             msg!("The auction has to end before it can be restarted!");
             return Err(NameAuctionError::AuctionInProgress.into());
@@ -155,8 +161,8 @@ pub fn process_create(
         return Ok(());
     }
 
-    if accounts.state.data_len() != 0 {
-        msg!("An auction for this name has already been created.");
+    if accounts.name.data_len() != 0 {
+        msg!("Name account is already initialized.");
         return Err(ProgramError::AccountAlreadyInitialized);
     }
 
