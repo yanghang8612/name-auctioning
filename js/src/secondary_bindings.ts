@@ -116,7 +116,6 @@ export async function performReverseLookup(
   );
 
   let name = await NameRegistryState.retrieve(connection, reverseLookupAccount);
-  console.log(name.data);
-  let nameLength = name.data.slice(0, 4).readInt32LE();
+  let nameLength = new BN(name.data.slice(0, 4), 'le').toNumber();
   return name.data.slice(4, 4 + nameLength).toString();
 }
