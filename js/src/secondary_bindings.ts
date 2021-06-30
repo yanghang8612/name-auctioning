@@ -1,11 +1,14 @@
 import {
   getFilteredProgramAccounts,
+  getHashedName,
+  getNameAccountKey,
+  NameRegistryState,
   NAME_SERVICE_PROGRAM_ID,
 } from '@bonfida/spl-name-service';
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 import bs58 from 'bs58';
-import { AUCTION_PROGRAM_ID } from './bindings';
+import { AUCTION_PROGRAM_ID, PROGRAM_ID } from './bindings';
 
 export async function findActiveAuctionsForUser(
   connection: Connection,
@@ -81,7 +84,7 @@ export async function findEndingAuctions(
 export async function findOwnedNameAccountsForUser(
   connection: Connection,
   userAccount: PublicKey
-) {
+): Promise<PublicKey[]> {
   const filters = [
     {
       memcmp: {
@@ -98,4 +101,22 @@ export async function findOwnedNameAccountsForUser(
   return accounts.map((a) => {
     return new PublicKey(a.accountInfo.data.slice(64, 96));
   });
+}
+
+export async function performReverseLookup(
+  connection: Connection,
+  nameAccount: PublicKey
+): Promise<string> {
+  let [centralState] = await PublicKey.findProgramAddress(
+    [PROGRAM_ID.toBuffer()],
+    PROGRAM_ID
+  );
+  let hashedReverseLookup = await getHashedName(nameAccount.toBase58());
+  let reverseLookupAccount = await getNameAccountKey(
+    hashedReverseLookup,
+    centralState
+  );
+
+  let name = await NameRegistryState.retrieve(connection, reverseLookupAccount);
+  return name.data.toString();
 }
