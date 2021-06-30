@@ -1,4 +1,7 @@
-import { getFilteredProgramAccounts } from '@bonfida/spl-name-service';
+import {
+  getFilteredProgramAccounts,
+  NAME_SERVICE_PROGRAM_ID,
+} from '@bonfida/spl-name-service';
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 import bs58 from 'bs58';
@@ -73,4 +76,26 @@ export async function findEndingAuctions(
     await getFilteredProgramAccounts(connection, AUCTION_PROGRAM_ID, filters)
   );
   return accounts;
+}
+
+export async function findOwnedNameAccountsForUser(
+  connection: Connection,
+  userAccount: PublicKey
+) {
+  const filters = [
+    {
+      memcmp: {
+        offset: 32,
+        bytes: userAccount.toBase58(),
+      },
+    },
+  ];
+  const accounts = await getFilteredProgramAccounts(
+    connection,
+    NAME_SERVICE_PROGRAM_ID,
+    filters
+  );
+  return accounts.map((a) => {
+    return new PublicKey(a.accountInfo.data.slice(64, 96));
+  });
 }
