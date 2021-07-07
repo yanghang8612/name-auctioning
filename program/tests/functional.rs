@@ -1,14 +1,15 @@
 use std::str::FromStr;
 
 use name_auctioning::{
-    instructions::{create, init, resell},
+    instructions::{create, init, resell, reset_auction},
     processor::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, TOKEN_MINT},
 };
 use solana_program::{
-    hash::hashv, instruction::Instruction, program_option::COption, program_pack::Pack,
+    account_info::AccountInfo, entrypoint::ProgramResult, hash::hashv, instruction::Instruction,
+    msg, program_error::PrintProgramError, program_option::COption, program_pack::Pack,
     pubkey::Pubkey,
 };
-use solana_program_test::{ProgramTest, ProgramTestContext};
+use solana_program_test::{processor, ProgramTest, ProgramTestContext};
 use solana_sdk::{
     account::Account,
     signature::{Keypair, Signer},
@@ -34,12 +35,16 @@ async fn test() {
         None,
     );
     let auction_program_id = Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
-    program_test.add_program("spl_name_service", spl_name_service::id(), None);
+    program_test.add_program(
+        "spl_name_service",
+        spl_name_service::id(),
+        processor!(spl_name_service::processor::Processor::process_instruction),
+    );
     program_test.add_program(
         "spl_auction",
         auction_program_id,
         // processor!(spl_auction::processor::process_instruction),
-        None,
+        processor!(spl_auction::processor::process_instruction),
     );
 
     let mut mint_data = vec![0u8; Mint::LEN];
@@ -235,6 +240,18 @@ async fn test() {
     );
 
     sign_send_instruction(&mut ctx, create_naming_auction_instruction, vec![])
+        .await
+        .unwrap();
+
+    let reset_auction_instruction = reset_auction(
+        program_id,
+        auction_program_id,
+        ctx.payer.pubkey(),
+        auction_account,
+        name_account,
+        derived_state_key,
+    );
+    sign_send_instruction(&mut ctx, reset_auction_instruction, vec![])
         .await
         .unwrap();
 }

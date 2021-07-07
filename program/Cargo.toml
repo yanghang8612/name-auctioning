@@ -9,6 +9,7 @@ edition = "2018"
 [features]
 no-entrypoint = []
 test-bpf = []
+no-admin = []
 
 [dependencies]
 solana-program = "1.6.9"

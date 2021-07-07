@@ -2,6 +2,7 @@ use crate::{
     instructions::ProgramInstruction,
     processor::{
         claim::process_claim, create::process_create, init::process_init, resell::process_resell,
+        reset_auction::process_reset_auction,
     },
 };
 use borsh::BorshDeserialize;
@@ -14,6 +15,7 @@ pub mod claim;
 pub mod create;
 pub mod init;
 pub mod resell;
+pub mod reset_auction;
 
 pub const OVERTIME_LENGTH: u64 = 900;
 pub const PRICE_INCREMENT_MARGIN: u64 = 429496729; // 1% bid increment
@@ -23,6 +25,7 @@ pub const MINIMUM_PRICE: u64 = 20_000_000;
 pub const AUCTION_PROGRAM_ID: &str = "AVWV7vdWbLqXiLKFaP19GhYurhwxaLp2qRBSjT5tR5vT";
 pub const AUCTION_MAX_LENGTH: u64 = 604800; // One minute    in seconds
 pub const BONFIDA_VAULT: &str = "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7";
+pub const ADMIN: &str = "BD4vT1aztHmuEPZh7GgvpeFskgyhi9AtPwtxzYEh5J91";
 pub struct Processor {}
 
 impl Processor {
@@ -58,6 +61,10 @@ impl Processor {
                     lamports,
                     space,
                 )?;
+            }
+            ProgramInstruction::ResetAuction => {
+                msg!("Instruction: Reset auction (admin command)");
+                process_reset_auction(program_id, accounts)?;
             }
             ProgramInstruction::Resell {
                 name,

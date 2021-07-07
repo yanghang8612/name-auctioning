@@ -13,28 +13,33 @@ pub enum ProgramInstruction {
     ///
     ///   1. `[writable]` The state account
     ///   2. `[]` The system program account
-    ///   3. `[writable, signer]` The fee payer account
-    ///   4. `[]` The sysvar rent account
-    Init { state_nonce: u8 },
+    ///   3. `[]` The SPL token program account
+    ///   4. `[writable]` The new signer account
+    ///   5. `[signer]` The parent authority account
+    ///   6. `[signer, writable]` The fee payer account
+    ///   7. `[writable]` The new nft token mint account
+    ///   8. `[writable]` The nft token account to be created and minted to
+    ///   9. `[]` The owner of the target nft token account
+    Init {
+        state_nonce: u8,
+    },
     /// Creates an auction
     ///
     /// Accounts expected by this instruction:
     ///
     ///   1. `[]` The rent sysvar account
-    ///   2. `[]` The clock sysvar account
-    ///   3. `[]` The name service program account
-    ///   4. `[]` The root domain account
-    ///   5. `[]` The name account
-    ///   6. `[writable]` The reverse lookup account
-    ///   7. `[]` The system program account
-    ///   8. `[]` The auction program account
-    ///   9. `[writable]` The auction account
-    ///   10. `[writable]` The central state account
-    ///   11. `[writable]` The state account
-    ///   12. `[writable, signer]` The fee payer account
-    ///   13. `[writable]` The quote mint account
-    Create { name: String },
-    /// Claims an auction and sets the highest bidder as owner of the name account
+    ///   2. `[]` The system program account
+    ///   3. `[]` The SPL token program account
+    ///   4. `[writable]` The new signer account
+    ///   5. `[signer]` The parent authority account
+    ///   6. `[signer, writable]` The fee payer account
+    ///   7. `[writable]` The new nft token mint account
+    ///   8. `[writable]` The nft token account to be created and minted to
+    ///   9. `[]` The owner of the target nft token account
+    Create {
+        name: String,
+    },
+    /// Executes an arbitrary program instruction, signing as the tokenized authority
     ///
     /// Accounts expected by this instruction:
     ///
@@ -59,6 +64,7 @@ pub enum ProgramInstruction {
         lamports: u64,
         space: u32,
     },
+    ResetAuction,
     /// Creates a secondary auction for domain owners to resell their ownership
     ///
     /// Accounts expected by this instruction:
@@ -79,7 +85,10 @@ pub enum ProgramInstruction {
     ///   14. `[writable]` The destination token account
     ///   15. `[writable, signer]` The fee payer account
     ///   16. `[writable]` The quote mint account
-    Resell { name: String, minimum_price: u64 },
+    Resell {
+        name: String,
+        minimum_price: u64,
+    },
 }
 
 pub fn init(
@@ -234,9 +243,28 @@ pub fn resell(
         AccountMeta::new(fee_payer, true),
         AccountMeta::new(quote_mint, false),
     ];
+
     Instruction {
         program_id,
         accounts,
         data,
     }
+}
+pub fn reset_auction(
+    program_id: Pubkey,
+    auction_program_id: Pubkey,
+    admin: Pubkey,
+    auction: Pubkey,
+    name: Pubkey,
+    state: Pubkey,
+) -> Instruction {
+    let data = ProgramInstruction::ResetAuction.try_to_vec().unwrap();
+    let accounts = vec![
+        AccountMeta::new_readonly(auction_program_id, false),
+        AccountMeta::new_readonly(sysvar::clock::id(), false),
+        AccountMeta::new_readonly(admin, true),
+        AccountMeta::new(auction, false),
+        AccountMeta::new_readonly(name, false),
+        AccountMeta::new_readonly(state, false),
+    ];
 }
