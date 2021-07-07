@@ -243,17 +243,17 @@ async fn test() {
         .await
         .unwrap();
 
-    let reset_auction_instruction = reset_auction(
-        program_id,
-        auction_program_id,
-        ctx.payer.pubkey(),
-        auction_account,
-        name_account,
-        derived_state_key,
-    );
-    sign_send_instruction(&mut ctx, reset_auction_instruction, vec![])
-        .await
-        .unwrap();
+    // let reset_auction_instruction = reset_auction(
+    //     program_id,
+    //     auction_program_id,
+    //     ctx.payer.pubkey(),
+    //     auction_account,
+    //     name_account,
+    //     derived_state_key,
+    // );
+    // sign_send_instruction(&mut ctx, reset_auction_instruction, vec![])
+    //     .await
+    //     .unwrap();
 }
 
 // #[tokio::test]

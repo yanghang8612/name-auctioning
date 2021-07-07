@@ -267,4 +267,9 @@ pub fn reset_auction(
         AccountMeta::new_readonly(name, false),
         AccountMeta::new_readonly(state, false),
     ];
+    Instruction {
+        program_id,
+        accounts,
+        data,
+    }
 }

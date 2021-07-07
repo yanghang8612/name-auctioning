@@ -170,7 +170,7 @@ pub fn process_resell(
                     return Err(NameAuctionError::AuctionRealized.into());
                 } else if accounts.reselling_state.data_len() == 0 {
                     msg!("This is not a reselling auction. Please restart it with the create instruction!");
-                    return Err(ProgramError::InvalidArgument.into());
+                    return Err(ProgramError::InvalidArgument);
                 } else {
                     msg!("Restarting auction.");
                     Cpi::start_auction(
@@ -181,7 +181,7 @@ pub fn process_resell(
                         *accounts.name.key,
                         &signer_seeds,
                     )?;
-                    Ok::<(), ProgramError>(())?
+                    return Ok(());
                 }
             }
             _ => unreachable!(),
