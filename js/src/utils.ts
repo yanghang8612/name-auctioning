@@ -30,3 +30,16 @@ export async function getReverseLookupAddress(
   );
   return reverseLookupAccount;
 }
+
+export async function getDNSRecordAddress(
+  nameAccount: PublicKey,
+  type: string
+) {
+  let hashedName = await getHashedName('\0'.concat(type));
+  let recordAccount = await getNameAccountKey(
+    hashedName,
+    undefined,
+    nameAccount
+  );
+  return recordAccount;
+}
