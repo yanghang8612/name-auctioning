@@ -344,7 +344,6 @@ export class claimInstruction {
   }
 }
 
-
 export class resellInstruction {
   tag: number;
   name: string;
@@ -364,8 +363,8 @@ export class resellInstruction {
     ],
   ]);
 
-  constructor(obj: { name: string, minimumPrice: number }) {
-    this.tag = 3;
+  constructor(obj: { name: string; minimumPrice: number }) {
+    this.tag = 4;
     this.name = obj.name;
     this.minimumPrice = obj.minimumPrice;
   }
