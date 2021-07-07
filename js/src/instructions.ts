@@ -247,7 +247,7 @@ export class claimInstruction {
     stateAccount: PublicKey,
     feePayer: PublicKey,
     quoteMint: PublicKey,
-    bonfidaVault: PublicKey,
+    destinationTokenAccount: PublicKey,
     bidderWallet: PublicKey,
     bidderPot: PublicKey,
     bidderPotTokenAccount: PublicKey
@@ -315,7 +315,7 @@ export class claimInstruction {
         isWritable: false,
       },
       {
-        pubkey: bonfidaVault,
+        pubkey: destinationTokenAccount,
         isSigner: false,
         isWritable: true,
       },
@@ -333,6 +333,147 @@ export class claimInstruction {
         pubkey: bidderPotTokenAccount,
         isSigner: false,
         isWritable: true,
+      },
+    ];
+
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+}
+
+
+export class resellInstruction {
+  tag: number;
+  name: string;
+  minimumPrice: number;
+
+  static schema: Schema = new Map([
+    [
+      createInstruction,
+      {
+        kind: 'struct',
+        fields: [
+          ['tag', 'u8'],
+          ['name', 'string'],
+          ['minimumPrice', 'u64'],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: { name: string, minimumPrice: number }) {
+    this.tag = 3;
+    this.name = obj.name;
+    this.minimumPrice = obj.minimumPrice;
+  }
+
+  serialize(): Uint8Array {
+    return serialize(createInstruction.schema, this);
+  }
+
+  getInstruction(
+    programId: PublicKey,
+    rentSysvarAccount: PublicKey,
+    clockSysvarAccount: PublicKey,
+    namingServiceProgram: PublicKey,
+    rootDomain: PublicKey,
+    nameAccount: PublicKey,
+    nameOwnerAccount: PublicKey,
+    reverseLookupAccount: PublicKey,
+    systemProgram: PublicKey,
+    auctionProgram: PublicKey,
+    auctionAccount: PublicKey,
+    centralStateAccount: PublicKey,
+    stateAccount: PublicKey,
+    resellingStateAccount: PublicKey,
+    destinationTokenAccount: PublicKey,
+    feePayer: PublicKey,
+    quoteMint: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.from(this.serialize());
+    let keys = [
+      {
+        pubkey: rentSysvarAccount,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: clockSysvarAccount,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: namingServiceProgram,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: rootDomain,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: nameAccount,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: nameOwnerAccount,
+        isSigner: true,
+        isWritable: false,
+      },
+      {
+        pubkey: reverseLookupAccount,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: systemProgram,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: auctionProgram,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: auctionAccount,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: centralStateAccount,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: stateAccount,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: resellingStateAccount,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: destinationTokenAccount,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: feePayer,
+        isSigner: true,
+        isWritable: true,
+      },
+      {
+        pubkey: quoteMint,
+        isSigner: false,
+        isWritable: false,
       },
     ];
 

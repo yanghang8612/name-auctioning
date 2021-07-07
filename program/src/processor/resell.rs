@@ -19,10 +19,10 @@ use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
 
 use crate::{
     error::NameAuctionError,
-    processor::MINIMUM_PRICE,
-    state::NameAuction,
+    state::{NameAuction, ResellingAuction},
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
+use spl_token::state::Account;
 
 use super::{AUCTION_MAX_LENGTH, AUCTION_PROGRAM_ID};
 
@@ -32,12 +32,15 @@ struct Accounts<'a, 'b: 'a> {
     naming_service_program: &'a AccountInfo<'b>,
     root_domain: &'a AccountInfo<'b>,
     name: &'a AccountInfo<'b>,
+    name_owner: &'a AccountInfo<'b>,
     reverse_lookup: &'a AccountInfo<'b>,
     system_program: &'a AccountInfo<'b>,
     auction: &'a AccountInfo<'b>,
     central_state: &'a AccountInfo<'b>,
     state: &'a AccountInfo<'b>,
+    reselling_state: &'a AccountInfo<'b>,
     auction_program: &'a AccountInfo<'b>,
+    token_destination_account: &'a AccountInfo<'b>,
     fee_payer: &'a AccountInfo<'b>,
     quote_mint: &'a AccountInfo<'b>,
 }
@@ -53,18 +56,22 @@ fn parse_accounts<'a, 'b: 'a>(
         naming_service_program: next_account_info(accounts_iter)?,
         root_domain: next_account_info(accounts_iter)?,
         name: next_account_info(accounts_iter)?,
+        name_owner: next_account_info(accounts_iter)?,
         reverse_lookup: next_account_info(accounts_iter)?,
         system_program: next_account_info(accounts_iter)?,
         auction_program: next_account_info(accounts_iter)?,
         auction: next_account_info(accounts_iter)?,
         central_state: next_account_info(accounts_iter)?,
         state: next_account_info(accounts_iter)?,
+        reselling_state: next_account_info(accounts_iter)?,
+        token_destination_account: next_account_info(accounts_iter)?,
         fee_payer: next_account_info(accounts_iter)?,
         quote_mint: next_account_info(accounts_iter)?,
     };
 
     check_account_key(a.rent_sysvar, &sysvar::rent::id()).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
+    check_signer(a.name_owner).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
@@ -78,15 +85,19 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_owner(a.state, &system_program::id())
         .or_else(|_| check_account_owner(a.state, program_id))
         .unwrap();
+    check_account_owner(a.reselling_state, &system_program::id())
+        .or_else(|_| check_account_owner(a.reselling_state, program_id))
+        .unwrap();
     check_signer(a.fee_payer).unwrap();
 
     Ok(a)
 }
 
-pub fn process_create(
+pub fn process_resell(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
     name: String,
+    minimum_price: u64,
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
 
@@ -110,14 +121,26 @@ pub fn process_create(
         msg!("Provided wrong name account");
         return Err(ProgramError::InvalidArgument);
     }
+    if accounts.name.data_len() == 0 {
+        msg!("Name account is not initialized. Please create an auction before reselling.");
+        return Err(ProgramError::UninitializedAccount);
+    }
+    let token_destination_account =
+        Account::unpack(&accounts.token_destination_account.data.borrow())?;
+    check_account_key(accounts.quote_mint, &token_destination_account.mint)?;
 
     let signer_seeds = name_account_key.to_bytes();
 
-    let (derived_state_key, derived_signer_nonce) =
-        Pubkey::find_program_address(&[&signer_seeds], program_id);
-
+    let (derived_state_key, _) = Pubkey::find_program_address(&[&signer_seeds], program_id);
     if &derived_state_key != accounts.state.key {
-        msg!("An invalid signer account was provided");
+        msg!("An invalid state account was provided");
+        return Err(ProgramError::InvalidArgument);
+    }
+
+    let (derived_reselling_state_key, derived_signer_nonce) =
+        Pubkey::find_program_address(&[&signer_seeds, &[1u8]], program_id); // TODO check
+    if &derived_reselling_state_key != accounts.reselling_state.key {
+        msg!("An invalid reselling state account was provided");
         return Err(ProgramError::InvalidArgument);
     }
 
@@ -125,46 +148,44 @@ pub fn process_create(
 
     if accounts.state.data_len() != 0 {
         msg!("An auction for this name has already been created.");
-
-        if accounts.name.data_len() != 0 {
-            msg!("Name account is already initialized.");
-            return Err(ProgramError::AccountAlreadyInitialized);
-        }
         let state = NameAuction::unpack_unchecked(&accounts.state.data.borrow()).unwrap();
         if accounts.auction.key != &Pubkey::new(&state.auction_account) {
             msg!("Provided invalid auction account");
             return Err(ProgramError::InvalidArgument);
         }
+
         let current_timestamp = Clock::from_account_info(accounts.clock_sysvar)?.unix_timestamp;
         let auction: AuctionData =
             try_from_slice_unchecked(&accounts.auction.data.borrow()).unwrap();
+
         if !auction.ended(current_timestamp)? {
             msg!("The auction has to end before it can be restarted!");
             return Err(NameAuctionError::AuctionInProgress.into());
         }
+
         match auction.bid_state {
             BidState::EnglishAuction { bids, max: _ } => {
                 if !bids.is_empty() {
                     msg!("The auction has a bidder, which means it has a winner and cannot be reset!");
                     return Err(NameAuctionError::AuctionRealized.into());
+                } else if accounts.reselling_state.data_len() == 0 {
+                    msg!("This is not a reselling auction. Please restart it with the create instruction!");
+                    return Err(ProgramError::InvalidArgument.into());
+                } else {
+                    msg!("Restarting auction.");
+                    Cpi::start_auction(
+                        accounts.auction_program,
+                        accounts.clock_sysvar,
+                        accounts.auction,
+                        accounts.state,
+                        *accounts.name.key,
+                        &signer_seeds,
+                    )?;
+                    Ok::<(), ProgramError>(())?
                 }
             }
             _ => unreachable!(),
         };
-        Cpi::start_auction(
-            accounts.auction_program,
-            accounts.clock_sysvar,
-            accounts.auction,
-            accounts.state,
-            *accounts.name.key,
-            &signer_seeds,
-        )?;
-        return Ok(());
-    }
-
-    if accounts.name.data_len() != 0 {
-        msg!("Name account is already initialized.");
-        return Err(ProgramError::AccountAlreadyInitialized);
     }
 
     let hashed_reverse_lookup =
@@ -188,15 +209,29 @@ pub fn process_create(
 
     let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
 
-    Cpi::create_account(
-        program_id,
-        accounts.system_program,
-        accounts.fee_payer,
-        accounts.state,
-        accounts.rent_sysvar,
-        signer_seeds,
-        NameAuction::LEN,
-    )?;
+    if accounts.state.data_len() == 0 {
+        Cpi::create_account(
+            program_id,
+            accounts.system_program,
+            accounts.fee_payer,
+            accounts.state,
+            accounts.rent_sysvar,
+            signer_seeds,
+            NameAuction::LEN,
+        )?;
+    }
+    if accounts.reselling_state.data_len() == 0 {
+        Cpi::create_account(
+            program_id,
+            accounts.system_program,
+            accounts.fee_payer,
+            accounts.reselling_state,
+            accounts.rent_sysvar,
+            signer_seeds,
+            ResellingAuction::LEN,
+        )?;
+    }
+
     let end_auction_at = Some(AUCTION_MAX_LENGTH);
 
     let state = NameAuction {
@@ -211,6 +246,15 @@ pub fn process_create(
         state.serialize(&mut pt)?;
     }
 
+    let reselling_state = ResellingAuction {
+        token_destination_account: accounts.token_destination_account.key.to_bytes(),
+    };
+
+    {
+        let mut pt: &mut [u8] = &mut accounts.reselling_state.data.borrow_mut();
+        reselling_state.serialize(&mut pt)?;
+    }
+
     msg!("Setting up auction");
     solana_program::log::sol_log_compute_units();
 
@@ -223,7 +267,17 @@ pub fn process_create(
         end_auction_at,
         accounts.state,
         *accounts.name.key,
-        MINIMUM_PRICE,
+        minimum_price,
+    )?;
+
+    msg!("Transferring the domain ownership to the auction program");
+
+    Cpi::transfer_name_account(
+        accounts.naming_service_program,
+        accounts.name_owner,
+        accounts.name,
+        &accounts.central_state.key,
+        None,
     )?;
 
     solana_program::log::sol_log_compute_units();
@@ -239,17 +293,19 @@ pub fn process_create(
         &signer_seeds,
     )?;
 
-    Cpi::create_reverse_lookup_account(
-        accounts.naming_service_program,
-        accounts.system_program,
-        accounts.reverse_lookup,
-        accounts.fee_payer,
-        name,
-        hashed_reverse_lookup,
-        accounts.central_state,
-        accounts.rent_sysvar,
-        central_state_signer_seeds,
-    )?;
+    if accounts.reverse_lookup.data_len() == 0 {
+        Cpi::create_reverse_lookup_account(
+            accounts.naming_service_program,
+            accounts.system_program,
+            accounts.reverse_lookup,
+            accounts.fee_payer,
+            name,
+            hashed_reverse_lookup,
+            accounts.central_state,
+            accounts.rent_sysvar,
+            central_state_signer_seeds,
+        )?;
+    }
 
     Ok(())
 }

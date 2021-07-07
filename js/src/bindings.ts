@@ -13,6 +13,7 @@ import {
   claimInstruction,
   createInstruction,
   initInstruction,
+  resellInstruction,
 } from './instructions';
 import BN from 'bn.js';
 import { NameAuction } from './state';
@@ -137,7 +138,8 @@ export async function claimName(
   bidderPotTokenAccount: PublicKey,
   lamports: BN,
   space: number,
-  tldAuthority: PublicKey
+  tldAuthority: PublicKey,
+  destinationTokenAccount?: PublicKey,
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -171,13 +173,83 @@ export async function claimName(
     stateAccount,
     feePayer,
     quoteMint,
-    BONFIDA_BNB,
+    destinationTokenAccount? destinationTokenAccount: BONFIDA_BNB,
     bidderWallet,
     bidderPot,
     bidderPotTokenAccount
   );
 
   let instructions = [claimNameInstruction];
+
+  return [[], instructions];
+}
+
+export async function resellDomain(
+  nameAccount: PublicKey,
+  name: string,
+  feePayer: PublicKey,
+  quoteMint: PublicKey,
+  nameOwnerAccount: PublicKey,
+  destinationTokenAccount: PublicKey,
+  tldAuthority: PublicKey,
+  minimumPrice: number
+): Promise<PrimedTransaction> {
+  let [centralState] = await PublicKey.findProgramAddress(
+    [PROGRAM_ID.toBuffer()],
+    PROGRAM_ID
+  );
+
+  let auctionSeeds = [
+    Buffer.from('auction', 'utf-8'),
+    AUCTION_PROGRAM_ID.toBuffer(),
+    nameAccount.toBuffer(),
+  ];
+
+  let [auctionAccount, _] = await PublicKey.findProgramAddress(
+    auctionSeeds,
+    AUCTION_PROGRAM_ID
+  );
+
+  let [stateAccount] = await PublicKey.findProgramAddress(
+    [nameAccount.toBuffer()],
+    PROGRAM_ID
+  );
+
+  let [resellingStateAccount] = await PublicKey.findProgramAddress(
+    [nameAccount.toBuffer(), Buffer.from([1])],
+    PROGRAM_ID
+  );
+
+  let hashedReverseLookup = await getHashedName(nameAccount.toBase58());
+  let reverseLookupAccount = await getNameAccountKey(
+    hashedReverseLookup,
+    centralState
+  );
+
+  let initCentralStateInstruction = new resellInstruction({
+    name,
+    minimumPrice
+  }).getInstruction(
+    PROGRAM_ID,
+    SYSVAR_RENT_PUBKEY,
+    SYSVAR_CLOCK_PUBKEY,
+    NAMING_SERVICE_PROGRAM_ID,
+    tldAuthority,
+    nameAccount,
+    nameOwnerAccount,
+    reverseLookupAccount,
+    SystemProgram.programId,
+    AUCTION_PROGRAM_ID,
+    auctionAccount,
+    centralState,
+    stateAccount,
+    resellingStateAccount,
+    destinationTokenAccount,
+    feePayer,
+    quoteMint
+  );
+
+  let instructions = [initCentralStateInstruction];
 
   return [[], instructions];
 }

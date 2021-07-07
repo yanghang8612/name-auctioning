@@ -1,6 +1,8 @@
 use crate::{
     instructions::ProgramInstruction,
-    processor::{claim::process_claim, create::process_create, init::process_init},
+    processor::{
+        claim::process_claim, create::process_create, init::process_init, resell::process_resell,
+    },
 };
 use borsh::BorshDeserialize;
 use solana_program::{
@@ -11,6 +13,7 @@ use solana_program::{
 pub mod claim;
 pub mod create;
 pub mod init;
+pub mod resell;
 
 pub const OVERTIME_LENGTH: u64 = 900;
 pub const PRICE_INCREMENT_MARGIN: u64 = 429496729; // 1% bid increment
@@ -55,6 +58,13 @@ impl Processor {
                     lamports,
                     space,
                 )?;
+            }
+            ProgramInstruction::Resell {
+                name,
+                minimum_price,
+            } => {
+                msg!("Instruction: Resell");
+                process_resell(program_id, accounts, name, minimum_price)?;
             }
         }
         Ok(())

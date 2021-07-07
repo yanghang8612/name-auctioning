@@ -19,7 +19,7 @@ use spl_auction::{
 use spl_name_service::{instruction::NameRegistryInstruction, state::NameRecordHeader};
 
 use crate::{
-    processor::{END_AUCTION_GAP, MINIMUM_PRICE, TOKEN_MINT},
+    processor::{END_AUCTION_GAP, TOKEN_MINT},
     state::{NameAuction, ReverseLookup},
 };
 
@@ -66,6 +66,7 @@ impl Cpi {
         end_auction_at: Option<u64>,
         authority: &AccountInfo<'a>,
         resource: Pubkey,
+        minimum_price: u64,
     ) -> ProgramResult {
         let create_auction_instruction = create_auction_instruction(
             *auction_program.key,
@@ -77,7 +78,7 @@ impl Cpi {
                 token_mint: Pubkey::from_str(TOKEN_MINT).unwrap(),
                 authority: *authority.key,
                 resource,
-                price_floor: PriceFloor::MinimumPrice([MINIMUM_PRICE, 0, 0, 0]),
+                price_floor: PriceFloor::MinimumPrice([minimum_price, 0, 0, 0]),
             },
         );
 
@@ -125,7 +126,7 @@ impl Cpi {
         auction_program: &AccountInfo<'a>,
         clock_sysvar_account: &AccountInfo<'a>,
         auction_account: &AccountInfo<'a>,
-        bonfida_vault: &AccountInfo<'a>,
+        destination_token_account: &AccountInfo<'a>,
         winner_account: &AccountInfo<'a>,
         winner_pot_account: &AccountInfo<'a>,
         winner_pot_token_account: &AccountInfo<'a>,
@@ -136,7 +137,7 @@ impl Cpi {
     ) -> ProgramResult {
         let claim_auction_instruction = claim_bid_instruction(
             *auction_program.key,
-            *bonfida_vault.key,
+            *destination_token_account.key,
             *authority.key,
             *winner_account.key,
             *winner_pot_token_account.key,
@@ -148,7 +149,7 @@ impl Cpi {
             &claim_auction_instruction,
             &[
                 auction_program.clone(),
-                bonfida_vault.clone(),
+                destination_token_account.clone(),
                 winner_pot_token_account.clone(),
                 winner_pot_account.clone(),
                 authority.clone(),
@@ -267,6 +268,43 @@ impl Cpi {
             &[signer_seeds],
         )?;
         Ok(())
+    }
+
+    pub fn transfer_name_account<'a>(
+        name_service_program: &AccountInfo<'a>,
+        old_owner_account: &AccountInfo<'a>,
+        name_account: &AccountInfo<'a>,
+        new_owner_key: &Pubkey,
+        signer_seeds: Option<&[&[u8]]>,
+    ) -> ProgramResult {
+        let transfer_name_instruction = spl_name_service::instruction::transfer(
+            *name_service_program.key,
+            *new_owner_key,
+            *name_account.key,
+            *old_owner_account.key,
+            None,
+        )?;
+
+        if let Some(seeds) = signer_seeds {
+            invoke_signed(
+                &transfer_name_instruction,
+                &[
+                    name_service_program.clone(),
+                    old_owner_account.clone(),
+                    name_account.clone(),
+                ],
+                &[seeds],
+            )
+        } else {
+            invoke(
+                &transfer_name_instruction,
+                &[
+                    name_service_program.clone(),
+                    old_owner_account.clone(),
+                    name_account.clone(),
+                ],
+            )
+        }
     }
 }
 

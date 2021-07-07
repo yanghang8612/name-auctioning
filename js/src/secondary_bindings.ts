@@ -3,7 +3,7 @@ import {
   getHashedName,
   getNameAccountKey,
   NameRegistryState,
-  NAME_SERVICE_PROGRAM_ID,
+  NAME_PROGRAM_ID,
 } from '@bonfida/spl-name-service';
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
@@ -95,7 +95,7 @@ export async function findOwnedNameAccountsForUser(
   ];
   const accounts = await getFilteredProgramAccounts(
     connection,
-    NAME_SERVICE_PROGRAM_ID,
+    NAME_PROGRAM_ID,
     filters
   );
   return accounts.map((a) => a.publicKey);
@@ -116,6 +116,9 @@ export async function performReverseLookup(
   );
 
   let name = await NameRegistryState.retrieve(connection, reverseLookupAccount);
+  if (!name.data) {
+    throw 'Could not retrieve name data';
+  }
   let nameLength = new BN(name.data.slice(0, 4), 'le').toNumber();
   return name.data.slice(4, 4 + nameLength).toString();
 }

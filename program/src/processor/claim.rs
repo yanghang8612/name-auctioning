@@ -13,7 +13,7 @@ use solana_program::{
 use spl_name_service::state::get_seeds_and_key;
 
 use crate::{
-    state::NameAuction,
+    state::{NameAuction, ResellingAuction},
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
 
@@ -23,16 +23,18 @@ struct Accounts<'a, 'b: 'a> {
     clock_sysvar: &'a AccountInfo<'b>,
     spl_token_program: &'a AccountInfo<'b>,
     naming_service_program: &'a AccountInfo<'b>,
+    name_auctioning_program: &'a AccountInfo<'b>,
     root_domain: &'a AccountInfo<'b>,
     name: &'a AccountInfo<'b>,
     system_program: &'a AccountInfo<'b>,
     auction: &'a AccountInfo<'b>,
     central_state: &'a AccountInfo<'b>,
     state: &'a AccountInfo<'b>,
+    reselling_state: &'a AccountInfo<'b>,
     auction_program: &'a AccountInfo<'b>,
     fee_payer: &'a AccountInfo<'b>,
     quote_mint: &'a AccountInfo<'b>,
-    bonfida_vault: &'a AccountInfo<'b>,
+    destination_token: &'a AccountInfo<'b>,
     bidder_wallet: &'a AccountInfo<'b>,
     bidder_pot: &'a AccountInfo<'b>,
     bidder_pot_token: &'a AccountInfo<'b>,
@@ -47,6 +49,7 @@ fn parse_accounts<'a, 'b: 'a>(
         clock_sysvar: next_account_info(accounts_iter)?,
         spl_token_program: next_account_info(accounts_iter)?,
         naming_service_program: next_account_info(accounts_iter)?,
+        name_auctioning_program: next_account_info(accounts_iter)?,
         root_domain: next_account_info(accounts_iter)?,
         name: next_account_info(accounts_iter)?,
         system_program: next_account_info(accounts_iter)?,
@@ -54,9 +57,10 @@ fn parse_accounts<'a, 'b: 'a>(
         auction: next_account_info(accounts_iter)?,
         central_state: next_account_info(accounts_iter)?,
         state: next_account_info(accounts_iter)?,
+        reselling_state: next_account_info(accounts_iter)?,
         fee_payer: next_account_info(accounts_iter)?,
         quote_mint: next_account_info(accounts_iter)?,
-        bonfida_vault: next_account_info(accounts_iter)?,
+        destination_token: next_account_info(accounts_iter)?,
         bidder_wallet: next_account_info(accounts_iter)?,
         bidder_pot: next_account_info(accounts_iter)?,
         bidder_pot_token: next_account_info(accounts_iter)?,
@@ -64,6 +68,7 @@ fn parse_accounts<'a, 'b: 'a>(
     let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
     check_account_key(a.spl_token_program, &spl_token::id()).unwrap();
+    check_account_key(a.name_auctioning_program, &program_id).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
@@ -71,7 +76,6 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_owner(a.auction, spl_auction_id).unwrap();
     check_account_owner(a.central_state, &program_id).unwrap();
     check_account_owner(a.state, &program_id).unwrap();
-    check_account_key(a.bonfida_vault, &Pubkey::from_str(BONFIDA_VAULT).unwrap()).unwrap();
     check_signer(a.bidder_wallet).unwrap();
 
     Ok(a)
@@ -109,24 +113,69 @@ pub fn process_claim(
 
     let (derived_state_key, derived_signer_nonce) =
         Pubkey::find_program_address(&[&name_account_key.to_bytes()], program_id);
-
-    let signer_seeds: &[&[u8]] = &[&name_account_key.to_bytes(), &[derived_signer_nonce]];
-
     if &derived_state_key != accounts.state.key {
         msg!("An invalid signer account was provided");
         return Err(ProgramError::InvalidArgument);
     }
 
+    let signer_seeds: &[&[u8]] = &[&name_account_key.to_bytes(), &[derived_signer_nonce]];
+
     let central_state_nonce = accounts.central_state.data.borrow()[0];
 
     let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
+
+    if accounts.name.data_is_empty() {
+        check_account_key(
+            accounts.destination_token,
+            &Pubkey::from_str(BONFIDA_VAULT).unwrap(),
+        )
+        .unwrap();
+        Cpi::create_name_account(
+            accounts.naming_service_program,
+            accounts.system_program,
+            accounts.name,
+            accounts.fee_payer,
+            accounts.bidder_wallet,
+            accounts.root_domain,
+            accounts.central_state,
+            hashed_name,
+            lamports,
+            space,
+            central_state_signer_seeds,
+        )?;
+    } else {
+        // Claiming a reselling auction
+        let reselling_state =
+            ResellingAuction::unpack_unchecked(&accounts.reselling_state.data.borrow())?;
+
+        let (derived_reselling_state_key, _) =
+            Pubkey::find_program_address(&[&name_account_key.to_bytes(), &[1u8]], program_id); //TODO check
+        if &derived_reselling_state_key != accounts.reselling_state.key {
+            msg!("An reselling state account was provided");
+            return Err(ProgramError::InvalidArgument);
+        }
+        check_account_owner(accounts.reselling_state, &program_id).unwrap();
+        check_account_key(
+            accounts.destination_token,
+            &Pubkey::new(&reselling_state.token_destination_account),
+        )
+        .unwrap();
+
+        Cpi::transfer_name_account(
+            accounts.naming_service_program,
+            accounts.name_auctioning_program,
+            accounts.name,
+            &accounts.bidder_wallet.key,
+            Some(signer_seeds),
+        )?;
+    }
 
     Cpi::claim_auction(
         accounts.spl_token_program,
         accounts.auction_program,
         accounts.clock_sysvar,
         accounts.auction,
-        accounts.bonfida_vault,
+        accounts.destination_token,
         accounts.bidder_wallet,
         accounts.bidder_pot,
         accounts.bidder_pot_token,
@@ -134,20 +183,6 @@ pub fn process_claim(
         accounts.state,
         *accounts.name.key,
         signer_seeds,
-    )?;
-
-    Cpi::create_name_account(
-        accounts.naming_service_program,
-        accounts.system_program,
-        accounts.name,
-        accounts.fee_payer,
-        accounts.bidder_wallet,
-        accounts.root_domain,
-        accounts.central_state,
-        hashed_name,
-        lamports,
-        space,
-        central_state_signer_seeds,
     )?;
 
     Ok(())
