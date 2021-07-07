@@ -138,8 +138,7 @@ export async function claimName(
   bidderPotTokenAccount: PublicKey,
   lamports: BN,
   space: number,
-  tldAuthority: PublicKey,
-  destinationTokenAccount?: PublicKey,
+  tldAuthority: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -154,6 +153,15 @@ export async function claimName(
   );
 
   let hashed_name = await getHashedName(name);
+
+  let [resellingStateAccount] = await PublicKey.findProgramAddress(
+    [nameAccount.toBuffer(), Buffer.from([1])],
+    PROGRAM_ID
+  );
+
+  let destinationTokenAccount = await connection.getAccountInfo(
+    resellingStateAccount
+  );
 
   let claimNameInstruction = new claimInstruction({
     hashed_name,
@@ -173,7 +181,9 @@ export async function claimName(
     stateAccount,
     feePayer,
     quoteMint,
-    destinationTokenAccount? destinationTokenAccount: BONFIDA_BNB,
+    destinationTokenAccount
+      ? new PublicKey(destinationTokenAccount.data)
+      : BONFIDA_BNB,
     bidderWallet,
     bidderPot,
     bidderPotTokenAccount
@@ -228,7 +238,7 @@ export async function resellDomain(
 
   let initCentralStateInstruction = new resellInstruction({
     name,
-    minimumPrice
+    minimumPrice,
   }).getInstruction(
     PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
