@@ -23,7 +23,7 @@ pub const END_AUCTION_GAP: u64 = 600;
 pub const TOKEN_MINT: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"; // USDC mint
 pub const MINIMUM_PRICE: u64 = 20_000_000;
 pub const AUCTION_PROGRAM_ID: &str = "AVWV7vdWbLqXiLKFaP19GhYurhwxaLp2qRBSjT5tR5vT";
-pub const AUCTION_MAX_LENGTH: u64 = 604800; // One minute    in seconds
+pub const AUCTION_MAX_LENGTH: u64 = 604800; // One week in seconds
 pub const BONFIDA_VAULT: &str = "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7";
 pub const ADMIN: &str = "BD4vT1aztHmuEPZh7GgvpeFskgyhi9AtPwtxzYEh5J91";
 pub struct Processor {}
@@ -69,9 +69,10 @@ impl Processor {
             ProgramInstruction::Resell {
                 name,
                 minimum_price,
+                auction_duration,
             } => {
                 msg!("Instruction: Resell");
-                process_resell(program_id, accounts, name, minimum_price)?;
+                process_resell(program_id, accounts, name, minimum_price, auction_duration)?;
             }
         }
         Ok(())

@@ -4,9 +4,17 @@ use solana_program::{
     program_pack::{Pack, Sealed},
 };
 
+#[derive(BorshDeserialize, BorshSerialize, PartialEq)]
+pub enum NameAuctionStatus {
+    Uninitialized,
+    FirstAuction,
+    Claimed,
+    SecondaryAuction,
+}
+
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct NameAuction {
-    pub is_initialized: bool,
+    pub status: NameAuctionStatus,
     pub quote_mint: [u8; 32],
     pub signer_nonce: u8,
     pub auction_account: [u8; 32],

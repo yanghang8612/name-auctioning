@@ -20,7 +20,7 @@ use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
 use crate::{
     error::NameAuctionError,
     processor::MINIMUM_PRICE,
-    state::NameAuction,
+    state::{NameAuction, NameAuctionStatus},
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
 
@@ -200,7 +200,7 @@ pub fn process_create(
     let end_auction_at = Some(AUCTION_MAX_LENGTH);
 
     let state = NameAuction {
-        is_initialized: true,
+        status: NameAuctionStatus::FirstAuction,
         quote_mint: accounts.quote_mint.key.to_bytes(),
         signer_nonce: derived_signer_nonce,
         auction_account: accounts.auction.key.to_bytes(),

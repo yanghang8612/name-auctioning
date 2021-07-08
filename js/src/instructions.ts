@@ -348,6 +348,7 @@ export class resellInstruction {
   tag: number;
   name: string;
   minimumPrice: number;
+  auctionDuration: number;
 
   static schema: Schema = new Map([
     [
@@ -358,15 +359,21 @@ export class resellInstruction {
           ['tag', 'u8'],
           ['name', 'string'],
           ['minimumPrice', 'u64'],
+          ['auctionDuration', 'u64'],
         ],
       },
     ],
   ]);
 
-  constructor(obj: { name: string; minimumPrice: number }) {
+  constructor(obj: {
+    name: string;
+    minimumPrice: number;
+    auctionDuration: number;
+  }) {
     this.tag = 4;
     this.name = obj.name;
     this.minimumPrice = obj.minimumPrice;
+    this.auctionDuration = obj.auctionDuration;
   }
 
   serialize(): Uint8Array {

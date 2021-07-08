@@ -19,12 +19,12 @@ use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
 
 use crate::{
     error::NameAuctionError,
-    state::{NameAuction, ResellingAuction},
+    state::{NameAuction, NameAuctionStatus, ResellingAuction},
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
 use spl_token::state::Account;
 
-use super::{AUCTION_MAX_LENGTH, AUCTION_PROGRAM_ID};
+use super::AUCTION_PROGRAM_ID;
 
 struct Accounts<'a, 'b: 'a> {
     rent_sysvar: &'a AccountInfo<'b>,
@@ -98,6 +98,7 @@ pub fn process_resell(
     accounts: &[AccountInfo],
     name: String,
     minimum_price: u64,
+    auction_duration: u64,
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
 
@@ -154,24 +155,27 @@ pub fn process_resell(
             return Err(ProgramError::InvalidArgument);
         }
 
-        let current_timestamp = Clock::from_account_info(accounts.clock_sysvar)?.unix_timestamp;
-        let auction: AuctionData =
-            try_from_slice_unchecked(&accounts.auction.data.borrow()).unwrap();
+        match state.status {
+            NameAuctionStatus::FirstAuction => {
+                msg!("This is not a reselling auction. Please restart it with the create instruction!");
+                return Err(ProgramError::InvalidArgument);
+            }
+            NameAuctionStatus::SecondaryAuction => {
+                let current_timestamp =
+                    Clock::from_account_info(accounts.clock_sysvar)?.unix_timestamp;
+                let auction: AuctionData =
+                    try_from_slice_unchecked(&accounts.auction.data.borrow()).unwrap();
 
-        if !auction.ended(current_timestamp)? {
-            msg!("The auction has to end before it can be restarted!");
-            return Err(NameAuctionError::AuctionInProgress.into());
-        }
+                if !auction.ended(current_timestamp)? {
+                    msg!("The auction has to end before it can be restarted!");
+                    return Err(NameAuctionError::AuctionInProgress.into());
+                }
 
-        match auction.bid_state {
-            BidState::EnglishAuction { bids, max: _ } => {
-                if !bids.is_empty() {
-                    msg!("The auction has a bidder, which means it has a winner and cannot be reset!");
-                    return Err(NameAuctionError::AuctionRealized.into());
-                } else if accounts.reselling_state.data_len() == 0 {
-                    msg!("This is not a reselling auction. Please restart it with the create instruction!");
-                    return Err(ProgramError::InvalidArgument);
-                } else {
+                if let BidState::EnglishAuction { bids, max: _ } = auction.bid_state {
+                    if !bids.is_empty() {
+                        msg!("The auction has a bidder, which means it has a winner and cannot be reset!");
+                        return Err(NameAuctionError::AuctionRealized.into());
+                    }
                     msg!("Restarting auction.");
                     Cpi::start_auction(
                         accounts.auction_program,
@@ -184,8 +188,8 @@ pub fn process_resell(
                     return Ok(());
                 }
             }
-            _ => unreachable!(),
-        };
+            _ => {}
+        }
     }
 
     let hashed_reverse_lookup =
@@ -232,10 +236,8 @@ pub fn process_resell(
         )?;
     }
 
-    let end_auction_at = Some(AUCTION_MAX_LENGTH);
-
     let state = NameAuction {
-        is_initialized: true,
+        status: NameAuctionStatus::SecondaryAuction,
         quote_mint: accounts.quote_mint.key.to_bytes(),
         signer_nonce: derived_signer_nonce,
         auction_account: accounts.auction.key.to_bytes(),
@@ -264,7 +266,7 @@ pub fn process_resell(
         accounts.system_program,
         accounts.auction,
         accounts.fee_payer,
-        end_auction_at,
+        Some(auction_duration),
         accounts.state,
         *accounts.name.key,
         minimum_price,

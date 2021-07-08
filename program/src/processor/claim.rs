@@ -13,9 +13,10 @@ use solana_program::{
 use spl_name_service::state::get_seeds_and_key;
 
 use crate::{
-    state::{NameAuction, ResellingAuction},
+    state::{NameAuction, NameAuctionStatus, ResellingAuction},
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
+use borsh::BorshSerialize;
 
 use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT};
 
@@ -107,7 +108,7 @@ pub fn process_claim(
         return Err(ProgramError::AccountAlreadyInitialized);
     }
 
-    let state = NameAuction::unpack_unchecked(&accounts.state.data.borrow())?;
+    let mut state = NameAuction::unpack_unchecked(&accounts.state.data.borrow())?;
 
     check_account_key(accounts.quote_mint, &Pubkey::new(&state.quote_mint))?;
 
@@ -185,5 +186,10 @@ pub fn process_claim(
         signer_seeds,
     )?;
 
+    state.status = NameAuctionStatus::Claimed;
+    {
+        let mut pt: &mut [u8] = &mut accounts.state.data.borrow_mut();
+        state.serialize(&mut pt)?;
+    }
     Ok(())
 }

@@ -88,6 +88,7 @@ pub enum ProgramInstruction {
     Resell {
         name: String,
         minimum_price: u64,
+        auction_duration: u64,
     },
 }
 
@@ -218,10 +219,12 @@ pub fn resell(
     quote_mint: Pubkey,
     name: String,
     minimum_price: u64,
+    auction_duration: u64,
 ) -> Instruction {
     let data = ProgramInstruction::Resell {
         name,
         minimum_price,
+        auction_duration,
     }
     .try_to_vec()
     .unwrap();
