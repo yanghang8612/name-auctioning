@@ -202,8 +202,8 @@ export async function resellDomain(
   nameOwnerAccount: PublicKey,
   destinationTokenAccount: PublicKey,
   tldAuthority: PublicKey,
-  minimumPrice: number,
-  auctionDuration: number
+  minimumPrice: number, // with precision
+  auctionDuration: number // in s
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -227,7 +227,7 @@ export async function resellDomain(
   );
 
   let [resellingStateAccount] = await PublicKey.findProgramAddress(
-    [nameAccount.toBuffer(), Buffer.from([1])],
+    [nameAccount.toBuffer(), Buffer.from([1, 1])],
     PROGRAM_ID
   );
 

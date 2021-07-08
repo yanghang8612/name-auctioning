@@ -132,20 +132,27 @@ pub fn process_resell(
 
     let signer_seeds = name_account_key.to_bytes();
 
-    let (derived_state_key, _) = Pubkey::find_program_address(&[&signer_seeds], program_id);
+    let (derived_state_key, derived_state_signer_nonce) =
+        Pubkey::find_program_address(&[&signer_seeds], program_id);
     if &derived_state_key != accounts.state.key {
         msg!("An invalid state account was provided");
         return Err(ProgramError::InvalidArgument);
     }
 
-    let (derived_reselling_state_key, derived_signer_nonce) =
-        Pubkey::find_program_address(&[&signer_seeds, &[1u8]], program_id); // TODO check
+    let (derived_reselling_state_key, derived_reselling_signer_nonce) =
+        Pubkey::find_program_address(&[&signer_seeds, &[1u8, 1u8]], program_id);
+
     if &derived_reselling_state_key != accounts.reselling_state.key {
         msg!("An invalid reselling state account was provided");
         return Err(ProgramError::InvalidArgument);
     }
 
-    let signer_seeds: &[&[u8]] = &[&signer_seeds, &[derived_signer_nonce]];
+    let state_signer_seeds: &[&[u8]] = &[&signer_seeds, &[derived_state_signer_nonce]];
+    let reselling_state_signer_seeds: &[&[u8]] = &[
+        &signer_seeds,
+        &[1u8, 1u8],
+        &[derived_reselling_signer_nonce],
+    ];
 
     if accounts.state.data_len() != 0 {
         msg!("An auction for this name has already been created.");
@@ -183,7 +190,7 @@ pub fn process_resell(
                         accounts.auction,
                         accounts.state,
                         *accounts.name.key,
-                        &signer_seeds,
+                        &state_signer_seeds,
                     )?;
                     return Ok(());
                 }
@@ -220,7 +227,7 @@ pub fn process_resell(
             accounts.fee_payer,
             accounts.state,
             accounts.rent_sysvar,
-            signer_seeds,
+            state_signer_seeds,
             NameAuction::LEN,
         )?;
     }
@@ -231,7 +238,7 @@ pub fn process_resell(
             accounts.fee_payer,
             accounts.reselling_state,
             accounts.rent_sysvar,
-            signer_seeds,
+            reselling_state_signer_seeds,
             ResellingAuction::LEN,
         )?;
     }
@@ -239,7 +246,7 @@ pub fn process_resell(
     let state = NameAuction {
         status: NameAuctionStatus::SecondaryAuction,
         quote_mint: accounts.quote_mint.key.to_bytes(),
-        signer_nonce: derived_signer_nonce,
+        signer_nonce: derived_reselling_signer_nonce,
         auction_account: accounts.auction.key.to_bytes(),
     };
 
@@ -292,7 +299,7 @@ pub fn process_resell(
         accounts.auction,
         accounts.state,
         *accounts.name.key,
-        &signer_seeds,
+        &state_signer_seeds,
     )?;
 
     if accounts.reverse_lookup.data_len() == 0 {

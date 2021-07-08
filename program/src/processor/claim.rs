@@ -150,7 +150,7 @@ pub fn process_claim(
             ResellingAuction::unpack_unchecked(&accounts.reselling_state.data.borrow())?;
 
         let (derived_reselling_state_key, _) =
-            Pubkey::find_program_address(&[&name_account_key.to_bytes(), &[1u8]], program_id); //TODO check
+            Pubkey::find_program_address(&[&name_account_key.to_bytes(), &[1u8, 1u8]], program_id);
         if &derived_reselling_state_key != accounts.reselling_state.key {
             msg!("An reselling state account was provided");
             return Err(ProgramError::InvalidArgument);

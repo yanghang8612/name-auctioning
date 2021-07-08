@@ -73,7 +73,7 @@ pub enum ProgramInstruction {
     ///   2. `[]` The clock sysvar account
     ///   3. `[]` The name service program account
     ///   4. `[]` The root domain account
-    ///   5. `[]` The name account
+    ///   5. `[writable]` The name account
     ///   6. `[signer]` The name owner account
     ///   7. `[writable]` The reverse lookup account
     ///   8. `[]` The system program account
@@ -233,7 +233,7 @@ pub fn resell(
         AccountMeta::new_readonly(sysvar::clock::id(), false),
         AccountMeta::new_readonly(spl_name_service::id(), false),
         AccountMeta::new_readonly(root_domain, false),
-        AccountMeta::new_readonly(name_account, false),
+        AccountMeta::new(name_account, false),
         AccountMeta::new_readonly(name_owner_account, true),
         AccountMeta::new(reverse_lookup_account, false),
         AccountMeta::new_readonly(system_program::id(), false),

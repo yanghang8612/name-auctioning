@@ -424,7 +424,7 @@ export class resellInstruction {
       {
         pubkey: nameAccount,
         isSigner: false,
-        isWritable: false,
+        isWritable: true,
       },
       {
         pubkey: nameOwnerAccount,
