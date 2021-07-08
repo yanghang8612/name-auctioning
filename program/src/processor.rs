@@ -28,7 +28,7 @@ pub const AUCTION_PROGRAM_ID: &str = "AVWV7vdWbLqXiLKFaP19GhYurhwxaLp2qRBSjT5tR5
 pub const BONFIDA_VAULT: &str = "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7";
 pub const AUCTION_MAX_LENGTH: u64 = 604800; // One week in seconds
 pub const ADMIN: &str = "BD4vT1aztHmuEPZh7GgvpeFskgyhi9AtPwtxzYEh5J91";
-pub const FEES: &[u64] = &[20, 15, 10]; // Fees for low leverage orders for tiers [0, 1 ,2 ,3, 4, 5]
+pub const FEES: &[u64] = &[200, 150, 100]; // Fees for low leverage orders for tiers [0, 1 ,2]
 pub const FEE_TIERS: [u64; 2] = [100_000_000, 1_000_000_000]; // Amount of FIDA tokens (with precision) that the discount account needs to hold
 
 // Fees taken for the reselling of domain names
