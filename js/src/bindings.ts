@@ -138,7 +138,9 @@ export async function claimName(
   bidderPotTokenAccount: PublicKey,
   lamports: BN,
   space: number,
-  tldAuthority: PublicKey
+  tldAuthority: PublicKey,
+  discountAccount?: PublicKey,
+  discountOwnerAccount?: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -186,7 +188,9 @@ export async function claimName(
       : BONFIDA_BNB,
     bidderWallet,
     bidderPot,
-    bidderPotTokenAccount
+    bidderPotTokenAccount,
+    discountAccount,
+    discountOwnerAccount
   );
 
   let instructions = [claimNameInstruction];

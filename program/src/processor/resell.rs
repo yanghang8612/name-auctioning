@@ -122,7 +122,7 @@ pub fn process_resell(
         msg!("Provided wrong name account");
         return Err(ProgramError::InvalidArgument);
     }
-    let name_record = NameRecordHeader::unpack(&accounts.name.data.borrow()).unwrap();
+    let name_record = NameRecordHeader::unpack_from_slice(&accounts.name.data.borrow()).unwrap();
     if accounts.name.data_len() == 0 {
         msg!("Name account is not initialized. Please create an auction before reselling.");
         return Err(ProgramError::UninitializedAccount);

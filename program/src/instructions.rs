@@ -1,9 +1,13 @@
+use std::str::FromStr;
+
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     instruction::{AccountMeta, Instruction},
     pubkey::Pubkey,
     system_program, sysvar,
 };
+
+use crate::processor::BONFIDA_VAULT;
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
 pub enum ProgramInstruction {
@@ -59,6 +63,9 @@ pub enum ProgramInstruction {
     ///   14. `[]` The bidder wallet account
     ///   15. `[writable]` The bidder pot account
     ///   16. `[writable]` The bidder pot token account
+    ///   17. `[]` The bonfida vault account
+    ///   18. `[]` (Optional) The fida discount account
+    ///   19. `[signer]` (Optional) The fida dicount owner account
     Claim {
         hashed_name: [u8; 32],
         lamports: u64,
@@ -169,6 +176,8 @@ pub fn claim(
     lamports: u64,
     space: u32,
     hashed_name: [u8; 32],
+    discount_account_opt: Option<Pubkey>,
+    discount_account_owner_opt: Option<Pubkey>,
 ) -> Instruction {
     let data = ProgramInstruction::Claim {
         hashed_name,
@@ -177,7 +186,7 @@ pub fn claim(
     }
     .try_to_vec()
     .unwrap();
-    let accounts = vec![
+    let mut accounts = vec![
         AccountMeta::new_readonly(sysvar::clock::id(), false),
         AccountMeta::new_readonly(spl_token::id(), false),
         AccountMeta::new_readonly(spl_name_service::id(), false),
@@ -194,7 +203,16 @@ pub fn claim(
         AccountMeta::new_readonly(bidder_wallet, false),
         AccountMeta::new(bidder_pot, false),
         AccountMeta::new(bidder_pot_token, false),
+        AccountMeta::new(Pubkey::from_str(BONFIDA_VAULT).unwrap(), false),
     ];
+    if let Some(discount_account) = discount_account_opt {
+        accounts.push(AccountMeta::new_readonly(discount_account, false));
+        accounts.push(AccountMeta::new_readonly(
+            discount_account_owner_opt.unwrap(),
+            true,
+        ));
+    }
+
     Instruction {
         program_id,
         accounts,

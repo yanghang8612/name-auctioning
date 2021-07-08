@@ -134,6 +134,7 @@ impl Cpi {
         authority: &AccountInfo<'a>,
         resource: Pubkey,
         signer_seeds: &[&[u8]],
+        fee_percentage: u64,
     ) -> ProgramResult {
         let claim_auction_instruction = claim_bid_instruction(
             *auction_program.key,
@@ -142,7 +143,10 @@ impl Cpi {
             *winner_account.key,
             *winner_pot_token_account.key,
             *quote_mint.key,
-            ClaimBidArgs { resource },
+            ClaimBidArgs {
+                resource,
+                fee_percentage,
+            },
         );
 
         invoke_signed(

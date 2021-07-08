@@ -17,15 +17,29 @@ pub mod init;
 pub mod resell;
 pub mod reset_auction;
 
+////////////////////////////////////////////////////////////
+
 pub const OVERTIME_LENGTH: u64 = 900;
 pub const PRICE_INCREMENT_MARGIN: u64 = 429496729; // 1% bid increment
 pub const END_AUCTION_GAP: u64 = 600;
 pub const TOKEN_MINT: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"; // USDC mint
 pub const MINIMUM_PRICE: u64 = 20_000_000;
 pub const AUCTION_PROGRAM_ID: &str = "AVWV7vdWbLqXiLKFaP19GhYurhwxaLp2qRBSjT5tR5vT";
-pub const AUCTION_MAX_LENGTH: u64 = 604800; // One week in seconds
 pub const BONFIDA_VAULT: &str = "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7";
+pub const AUCTION_MAX_LENGTH: u64 = 604800; // One week in seconds
 pub const ADMIN: &str = "BD4vT1aztHmuEPZh7GgvpeFskgyhi9AtPwtxzYEh5J91";
+pub const FEES: &[u64] = &[20, 15, 10]; // Fees for low leverage orders for tiers [0, 1 ,2 ,3, 4, 5]
+pub const FEE_TIERS: [u64; 2] = [100_000_000, 1_000_000_000]; // Amount of FIDA tokens (with precision) that the discount account needs to hold
+
+// Fees taken for the reselling of domain names
+// | Tier | Percentage of payout    | Requirements   |
+// | ---- | ----------------------- | -------------- |
+// | 0    | 2%                      | None           |
+// | 1    | 1.5%                    | 100 FIDA       |
+// | 2    | 1%                      | 1,000 FIDA     |
+
+////////////////////////////////////////////////////////////
+
 pub struct Processor {}
 
 impl Processor {

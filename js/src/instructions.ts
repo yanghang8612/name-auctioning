@@ -250,7 +250,9 @@ export class claimInstruction {
     destinationTokenAccount: PublicKey,
     bidderWallet: PublicKey,
     bidderPot: PublicKey,
-    bidderPotTokenAccount: PublicKey
+    bidderPotTokenAccount: PublicKey,
+    discountAccount?: PublicKey,
+    discountOwnerAccount?: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
@@ -334,7 +336,28 @@ export class claimInstruction {
         isSigner: false,
         isWritable: true,
       },
+      {
+        pubkey: BONFIDA_BNB,
+        isSigner: false,
+        isWritable: true,
+      },
     ];
+
+    if (discountAccount) {
+      keys.push({
+        pubkey: discountAccount,
+        isSigner: false,
+        isWritable: false,
+      });
+      if (!discountOwnerAccount) {
+        throw 'If discount account is given, discoutOwner needs to be given.';
+      }
+      keys.push({
+        pubkey: discountOwnerAccount,
+        isSigner: true,
+        isWritable: false,
+      });
+    }
 
     return new TransactionInstruction({
       keys,

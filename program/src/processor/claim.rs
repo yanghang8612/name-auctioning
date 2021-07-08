@@ -11,14 +11,13 @@ use solana_program::{
     sysvar::{self},
 };
 use spl_name_service::state::get_seeds_and_key;
+use spl_token::state::Account;
 
+use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, FEES};
 use crate::{
-    state::{NameAuction, NameAuctionStatus, ResellingAuction},
+    state::{NameAuction, ResellingAuction},
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
-use borsh::BorshSerialize;
-
-use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT};
 
 struct Accounts<'a, 'b: 'a> {
     clock_sysvar: &'a AccountInfo<'b>,
@@ -39,6 +38,9 @@ struct Accounts<'a, 'b: 'a> {
     bidder_wallet: &'a AccountInfo<'b>,
     bidder_pot: &'a AccountInfo<'b>,
     bidder_pot_token: &'a AccountInfo<'b>,
+    bonfida_vault: &'a AccountInfo<'b>,
+    fida_discount_opt: Option<&'a AccountInfo<'b>>,
+    fida_discount_owner_opt: Option<&'a AccountInfo<'b>>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -65,6 +67,9 @@ fn parse_accounts<'a, 'b: 'a>(
         bidder_wallet: next_account_info(accounts_iter)?,
         bidder_pot: next_account_info(accounts_iter)?,
         bidder_pot_token: next_account_info(accounts_iter)?,
+        bonfida_vault: next_account_info(accounts_iter)?,
+        fida_discount_opt: next_account_info(accounts_iter).ok(),
+        fida_discount_owner_opt: next_account_info(accounts_iter).ok(),
     };
     let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
@@ -78,6 +83,14 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_owner(a.central_state, &program_id).unwrap();
     check_account_owner(a.state, &program_id).unwrap();
     check_signer(a.bidder_wallet).unwrap();
+    if a.bonfida_vault.key != &Pubkey::from_str(BONFIDA_VAULT).unwrap() {
+        msg!("Wrong Bonfida vault address");
+        return Err(ProgramError::InvalidArgument);
+    };
+    if let Some(fida_discount) = a.fida_discount_opt {
+        check_account_owner(fida_discount, a.fida_discount_owner_opt.unwrap().key).unwrap();
+        check_signer(a.fida_discount_owner_opt.unwrap()).unwrap();
+    }
 
     Ok(a)
 }
@@ -108,7 +121,7 @@ pub fn process_claim(
         return Err(ProgramError::AccountAlreadyInitialized);
     }
 
-    let mut state = NameAuction::unpack_unchecked(&accounts.state.data.borrow())?;
+    let state = NameAuction::unpack_unchecked(&accounts.state.data.borrow())?;
 
     check_account_key(accounts.quote_mint, &Pubkey::new(&state.quote_mint))?;
 
@@ -125,6 +138,7 @@ pub fn process_claim(
 
     let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
 
+    let mut fee_percentage = 0;
     if accounts.name.data_is_empty() {
         check_account_key(
             accounts.destination_token,
@@ -169,6 +183,17 @@ pub fn process_claim(
             &accounts.bidder_wallet.key,
             Some(signer_seeds),
         )?;
+
+        // Calculate fees
+        let mut fee_tier = 0;
+        if let Some(fida_discount) = accounts.fida_discount_opt {
+            let discount_data = Account::unpack(&fida_discount.data.borrow())?;
+            fee_tier = match FEES.iter().position(|&t| discount_data.amount < (t as u64)) {
+                Some(i) => i,
+                None => FEES.len(),
+            };
+        }
+        fee_percentage = FEES[fee_tier];
     }
 
     Cpi::claim_auction(
@@ -184,12 +209,8 @@ pub fn process_claim(
         accounts.state,
         *accounts.name.key,
         signer_seeds,
+        fee_percentage,
     )?;
 
-    state.status = NameAuctionStatus::Claimed;
-    {
-        let mut pt: &mut [u8] = &mut accounts.state.data.borrow_mut();
-        state.serialize(&mut pt)?;
-    }
     Ok(())
 }
