@@ -15,7 +15,7 @@ use solana_program::{
     sysvar::{self, Sysvar},
 };
 use spl_auction::processor::{AuctionData, BidState};
-use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
+use spl_name_service::state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX};
 
 use crate::{
     error::NameAuctionError,
@@ -122,6 +122,7 @@ pub fn process_resell(
         msg!("Provided wrong name account");
         return Err(ProgramError::InvalidArgument);
     }
+    let name_record = NameRecordHeader::unpack(&accounts.name.data.borrow()).unwrap();
     if accounts.name.data_len() == 0 {
         msg!("Name account is not initialized. Please create an auction before reselling.");
         return Err(ProgramError::UninitializedAccount);
@@ -162,40 +163,43 @@ pub fn process_resell(
             return Err(ProgramError::InvalidArgument);
         }
 
-        match state.status {
-            NameAuctionStatus::FirstAuction => {
-                msg!("This is not a reselling auction. Please restart it with the create instruction!");
-                return Err(ProgramError::InvalidArgument);
+        if name_record.owner == *accounts.central_state.key {
+            let current_timestamp = Clock::from_account_info(accounts.clock_sysvar)?.unix_timestamp;
+            let auction: AuctionData =
+                try_from_slice_unchecked(&accounts.auction.data.borrow()).unwrap();
+
+            if !auction.ended(current_timestamp)? {
+                msg!("The auction has to end before it can be restarted!");
+                return Err(NameAuctionError::AuctionInProgress.into());
             }
-            NameAuctionStatus::SecondaryAuction => {
-                let current_timestamp =
-                    Clock::from_account_info(accounts.clock_sysvar)?.unix_timestamp;
-                let auction: AuctionData =
-                    try_from_slice_unchecked(&accounts.auction.data.borrow()).unwrap();
 
-                if !auction.ended(current_timestamp)? {
-                    msg!("The auction has to end before it can be restarted!");
-                    return Err(NameAuctionError::AuctionInProgress.into());
+            match state.status {
+                NameAuctionStatus::FirstAuction => {
+                    msg!("This is not a reselling auction. Please restart it with the create instruction, or claim it!");
+                    return Err(ProgramError::InvalidArgument);
                 }
-
-                if let BidState::EnglishAuction { bids, max: _ } = auction.bid_state {
-                    if !bids.is_empty() {
-                        msg!("The auction has a bidder, which means it has a winner and cannot be reset!");
-                        return Err(NameAuctionError::AuctionRealized.into());
+                NameAuctionStatus::SecondaryAuction => {
+                    if let BidState::EnglishAuction { bids, max: _ } = auction.bid_state {
+                        if !bids.is_empty() {
+                            msg!("The auction has a bidder, which means it has a winner and cannot be reset!");
+                            return Err(NameAuctionError::AuctionRealized.into());
+                        }
+                        msg!("Restarting auction.");
+                        Cpi::start_auction(
+                            accounts.auction_program,
+                            accounts.clock_sysvar,
+                            accounts.auction,
+                            accounts.state,
+                            *accounts.name.key,
+                            &state_signer_seeds,
+                        )?;
+                        return Ok(());
                     }
-                    msg!("Restarting auction.");
-                    Cpi::start_auction(
-                        accounts.auction_program,
-                        accounts.clock_sysvar,
-                        accounts.auction,
-                        accounts.state,
-                        *accounts.name.key,
-                        &state_signer_seeds,
-                    )?;
-                    return Ok(());
+                }
+                _ => {
+                    unreachable!()
                 }
             }
-            _ => {}
         }
     }
 

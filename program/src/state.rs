@@ -8,7 +8,6 @@ use solana_program::{
 pub enum NameAuctionStatus {
     Uninitialized,
     FirstAuction,
-    Claimed,
     SecondaryAuction,
 }
 
