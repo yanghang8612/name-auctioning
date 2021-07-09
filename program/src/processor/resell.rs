@@ -283,6 +283,7 @@ pub fn process_resell(
         accounts.state,
         *accounts.name.key,
         minimum_price,
+        state_signer_seeds,
     )?;
 
     msg!("Transferring the domain ownership to the auction program");

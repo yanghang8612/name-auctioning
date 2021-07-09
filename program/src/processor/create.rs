@@ -224,6 +224,7 @@ pub fn process_create(
         accounts.state,
         *accounts.name.key,
         MINIMUM_PRICE,
+        signer_seeds,
     )?;
 
     solana_program::log::sol_log_compute_units();

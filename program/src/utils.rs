@@ -67,22 +67,23 @@ impl Cpi {
         authority: &AccountInfo<'a>,
         resource: Pubkey,
         minimum_price: u64,
+        signer_seeds: &[&[u8]],
     ) -> ProgramResult {
         let create_auction_instruction = create_auction_instruction(
             *auction_program.key,
             *fee_payer.key,
+            *authority.key,
             CreateAuctionArgs {
                 winners: WinnerLimit::Capped(1),
                 end_auction_at: end_auction_at.map(|n| n as i64),
                 end_auction_gap: Some(END_AUCTION_GAP as i64),
                 token_mint: Pubkey::from_str(TOKEN_MINT).unwrap(),
-                authority: *authority.key,
                 resource,
                 price_floor: PriceFloor::MinimumPrice([minimum_price, 0, 0, 0]),
             },
         );
 
-        invoke(
+        invoke_signed(
             &create_auction_instruction,
             &[
                 auction_program.clone(),
@@ -91,6 +92,7 @@ impl Cpi {
                 rent_sysvar_account.clone(),
                 system_account.clone(),
             ],
+            &[signer_seeds],
         )
     }
 
