@@ -13,7 +13,7 @@ use solana_program::{
 use spl_name_service::state::get_seeds_and_key;
 use spl_token::state::Account;
 
-use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, FEES};
+use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, FEES, FEE_TIERS};
 use crate::{
     state::{NameAuction, ResellingAuction},
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
@@ -166,7 +166,7 @@ pub fn process_claim(
         let (derived_reselling_state_key, _) =
             Pubkey::find_program_address(&[&name_account_key.to_bytes(), &[1u8, 1u8]], program_id);
         if &derived_reselling_state_key != accounts.reselling_state.key {
-            msg!("An reselling state account was provided");
+            msg!("An incorrect reselling state account was provided");
             return Err(ProgramError::InvalidArgument);
         }
         check_account_owner(accounts.reselling_state, &program_id).unwrap();
@@ -188,9 +188,12 @@ pub fn process_claim(
         let mut fee_tier = 0;
         if let Some(fida_discount) = accounts.fida_discount_opt {
             let discount_data = Account::unpack(&fida_discount.data.borrow())?;
-            fee_tier = match FEES.iter().position(|&t| discount_data.amount < (t as u64)) {
+            fee_tier = match FEE_TIERS
+                .iter()
+                .position(|&t| discount_data.amount < (t as u64))
+            {
                 Some(i) => i,
-                None => FEES.len(),
+                None => FEE_TIERS.len(),
             };
         }
         fee_percentage = FEES[fee_tier];

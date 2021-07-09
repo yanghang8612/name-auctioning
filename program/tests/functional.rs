@@ -407,7 +407,7 @@ async fn test_resell() {
     let create_name_instruction = spl_name_service::instruction::create(
         spl_name_service::id(),
         NameRegistryInstruction::Create {
-            hashed_name: hashed_name,
+            hashed_name,
             lamports: 1_000_000,
             space: 1_000,
         },

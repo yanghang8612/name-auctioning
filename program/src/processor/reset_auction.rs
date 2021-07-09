@@ -1,19 +1,14 @@
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
-    clock,
     entrypoint::ProgramResult,
-    msg, program,
+    msg,
     program_error::ProgramError,
-    program_pack::Pack,
     pubkey::Pubkey,
     sysvar,
 };
 use std::str::FromStr;
 
-use crate::{
-    state::NameAuction,
-    utils::{check_account_key, check_account_owner, check_signer, Cpi},
-};
+use crate::utils::{check_account_key, check_account_owner, check_signer, Cpi};
 
 use super::{ADMIN, AUCTION_PROGRAM_ID};
 
