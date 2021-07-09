@@ -272,6 +272,11 @@ export class claimInstruction {
         isWritable: false,
       },
       {
+        pubkey: programId,
+        isSigner: false,
+        isWritable: false
+      },
+      {
         pubkey: rootDomain,
         isSigner: false,
         isWritable: false,
