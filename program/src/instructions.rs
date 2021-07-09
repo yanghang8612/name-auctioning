@@ -60,7 +60,7 @@ pub enum ProgramInstruction {
     ///   11. `[writable, signer]` The fee payer account
     ///   12. `[writable]` The quote mint account
     ///   13. `[writable]` The payout destination token account
-    ///   14. `[]` The bidder wallet account
+    ///   14. `[signer]` The bidder wallet account
     ///   15. `[writable]` The bidder pot account
     ///   16. `[writable]` The bidder pot token account
     ///   17. `[]` The bonfida vault account
@@ -199,7 +199,7 @@ pub fn claim(
         AccountMeta::new(fee_payer, true),
         AccountMeta::new(quote_mint, false),
         AccountMeta::new(destination_token_account, false),
-        AccountMeta::new_readonly(bidder_wallet, false),
+        AccountMeta::new_readonly(bidder_wallet, true),
         AccountMeta::new(bidder_pot, false),
         AccountMeta::new(bidder_pot_token, false),
         AccountMeta::new(Pubkey::from_str(BONFIDA_VAULT).unwrap(), false),
