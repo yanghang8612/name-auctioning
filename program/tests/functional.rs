@@ -448,7 +448,6 @@ async fn test_resell() {
         ctx.payer.pubkey(),
         derived_reselling_state_key,
         Pubkey::from_str(BONFIDA_VAULT).unwrap(),
-        Pubkey::from_str(TOKEN_MINT).unwrap(),
         name.to_owned(),
         10,
         10,

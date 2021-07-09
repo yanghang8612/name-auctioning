@@ -91,7 +91,6 @@ pub enum ProgramInstruction {
     ///   13. `[writable]` The reselling state account
     ///   14. `[writable]` The destination token account
     ///   15. `[writable, signer]` The fee payer account
-    ///   16. `[writable]` The quote mint account
     Resell {
         name: String,
         minimum_price: u64,
@@ -234,7 +233,6 @@ pub fn resell(
     fee_payer: Pubkey,
     reselling_state_account: Pubkey,
     destination_token_account: Pubkey,
-    quote_mint: Pubkey,
     name: String,
     minimum_price: u64,
     auction_duration: u64,
@@ -262,7 +260,6 @@ pub fn resell(
         AccountMeta::new(reselling_state_account, false),
         AccountMeta::new(destination_token_account, false),
         AccountMeta::new(fee_payer, true),
-        AccountMeta::new(quote_mint, false),
     ];
 
     Instruction {

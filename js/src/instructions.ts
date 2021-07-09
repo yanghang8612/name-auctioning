@@ -419,8 +419,7 @@ export class resellInstruction {
     stateAccount: PublicKey,
     resellingStateAccount: PublicKey,
     destinationTokenAccount: PublicKey,
-    feePayer: PublicKey,
-    quoteMint: PublicKey
+    feePayer: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
@@ -498,11 +497,6 @@ export class resellInstruction {
         pubkey: feePayer,
         isSigner: true,
         isWritable: true,
-      },
-      {
-        pubkey: quoteMint,
-        isSigner: false,
-        isWritable: false,
       },
     ];
 

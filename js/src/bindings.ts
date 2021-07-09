@@ -202,7 +202,6 @@ export async function resellDomain(
   nameAccount: PublicKey,
   name: string,
   feePayer: PublicKey,
-  quoteMint: PublicKey,
   nameOwnerAccount: PublicKey,
   destinationTokenAccount: PublicKey,
   tldAuthority: PublicKey,
@@ -261,8 +260,7 @@ export async function resellDomain(
     stateAccount,
     resellingStateAccount,
     destinationTokenAccount,
-    feePayer,
-    quoteMint
+    feePayer
   );
 
   let instructions = [initCentralStateInstruction];

@@ -19,6 +19,7 @@ use spl_name_service::state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX};
 
 use crate::{
     error::NameAuctionError,
+    processor::TOKEN_MINT,
     state::{NameAuction, NameAuctionStatus, ResellingAuction},
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
@@ -42,7 +43,6 @@ struct Accounts<'a, 'b: 'a> {
     auction_program: &'a AccountInfo<'b>,
     token_destination_account: &'a AccountInfo<'b>,
     fee_payer: &'a AccountInfo<'b>,
-    quote_mint: &'a AccountInfo<'b>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -66,7 +66,6 @@ fn parse_accounts<'a, 'b: 'a>(
         reselling_state: next_account_info(accounts_iter)?,
         token_destination_account: next_account_info(accounts_iter)?,
         fee_payer: next_account_info(accounts_iter)?,
-        quote_mint: next_account_info(accounts_iter)?,
     };
 
     check_account_key(a.rent_sysvar, &sysvar::rent::id()).unwrap();
@@ -129,7 +128,10 @@ pub fn process_resell(
     }
     let token_destination_account =
         Account::unpack(&accounts.token_destination_account.data.borrow())?;
-    check_account_key(accounts.quote_mint, &token_destination_account.mint)?;
+    if Pubkey::from_str(TOKEN_MINT).unwrap() != token_destination_account.mint {
+        msg!("Destination token account is not of the right mint.");
+        return Err(ProgramError::InvalidArgument);
+    }
 
     let signer_seeds = name_account_key.to_bytes();
 
@@ -249,7 +251,7 @@ pub fn process_resell(
 
     let state = NameAuction {
         status: NameAuctionStatus::SecondaryAuction,
-        quote_mint: accounts.quote_mint.key.to_bytes(),
+        quote_mint: Pubkey::from_str(TOKEN_MINT).unwrap().to_bytes(),
         signer_nonce: derived_reselling_signer_nonce,
         auction_account: accounts.auction.key.to_bytes(),
     };
