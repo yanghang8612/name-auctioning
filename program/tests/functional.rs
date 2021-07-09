@@ -15,7 +15,7 @@ use solana_sdk::{
     transaction::Transaction,
     transport::TransportError,
 };
-use spl_auction::PREFIX;
+use spl_auction::{processor::EXCLUSIVE_AUCTION_AUTHORITY, PREFIX};
 use spl_name_service::{
     instruction::NameRegistryInstruction,
     state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX},
@@ -24,7 +24,7 @@ use spl_token::state::Mint;
 
 #[tokio::test]
 async fn test() {
-    let program_id = Pubkey::new_unique();
+    let program_id = Pubkey::from_str(EXCLUSIVE_AUCTION_AUTHORITY).unwrap();
     let mint_authority = Keypair::new();
     let bonfida_vault_owner = Keypair::new();
     let mut program_test = ProgramTest::new(

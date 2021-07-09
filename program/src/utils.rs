@@ -91,6 +91,7 @@ impl Cpi {
                 auction_account.clone(),
                 rent_sysvar_account.clone(),
                 system_account.clone(),
+                authority.clone(),
             ],
             &[signer_seeds],
         )
