@@ -375,7 +375,7 @@ export class resellInstruction {
 
   static schema: Schema = new Map([
     [
-      createInstruction,
+      resellInstruction,
       {
         kind: 'struct',
         fields: [
@@ -400,7 +400,7 @@ export class resellInstruction {
   }
 
   serialize(): Uint8Array {
-    return serialize(createInstruction.schema, this);
+    return serialize(resellInstruction.schema, this);
   }
 
   getInstruction(
