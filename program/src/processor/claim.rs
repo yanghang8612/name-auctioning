@@ -23,7 +23,6 @@ struct Accounts<'a, 'b: 'a> {
     clock_sysvar: &'a AccountInfo<'b>,
     spl_token_program: &'a AccountInfo<'b>,
     naming_service_program: &'a AccountInfo<'b>,
-    name_auctioning_program: &'a AccountInfo<'b>,
     root_domain: &'a AccountInfo<'b>,
     name: &'a AccountInfo<'b>,
     system_program: &'a AccountInfo<'b>,
@@ -52,7 +51,6 @@ fn parse_accounts<'a, 'b: 'a>(
         clock_sysvar: next_account_info(accounts_iter)?,
         spl_token_program: next_account_info(accounts_iter)?,
         naming_service_program: next_account_info(accounts_iter)?,
-        name_auctioning_program: next_account_info(accounts_iter)?,
         root_domain: next_account_info(accounts_iter)?,
         name: next_account_info(accounts_iter)?,
         system_program: next_account_info(accounts_iter)?,
@@ -74,7 +72,6 @@ fn parse_accounts<'a, 'b: 'a>(
     let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
     check_account_key(a.spl_token_program, &spl_token::id()).unwrap();
-    check_account_key(a.name_auctioning_program, &program_id).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
@@ -178,10 +175,10 @@ pub fn process_claim(
 
         Cpi::transfer_name_account(
             accounts.naming_service_program,
-            accounts.name_auctioning_program,
+            accounts.central_state,
             accounts.name,
             &accounts.bidder_wallet.key,
-            Some(signer_seeds),
+            Some(central_state_signer_seeds),
         )?;
 
         // Calculate fees
