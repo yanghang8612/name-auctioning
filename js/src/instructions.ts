@@ -244,6 +244,7 @@ export class claimInstruction {
     auctionProgram: PublicKey,
     auctionAccount: PublicKey,
     centralStateAccount: PublicKey,
+    resellingState: PublicKey,
     stateAccount: PublicKey,
     feePayer: PublicKey,
     quoteMint: PublicKey,
@@ -305,6 +306,11 @@ export class claimInstruction {
         pubkey: stateAccount,
         isSigner: false,
         isWritable: true,
+      },
+      {
+        pubkey: resellingState,
+        isSigner: false,
+        isWritable: false,
       },
       {
         pubkey: feePayer,

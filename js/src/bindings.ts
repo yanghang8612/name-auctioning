@@ -157,7 +157,7 @@ export async function claimName(
   let hashed_name = await getHashedName(name);
 
   let [resellingStateAccount] = await PublicKey.findProgramAddress(
-    [nameAccount.toBuffer(), Buffer.from([1])],
+    [nameAccount.toBuffer(), Buffer.from([1, 1])],
     PROGRAM_ID
   );
 
@@ -180,6 +180,7 @@ export async function claimName(
     AUCTION_PROGRAM_ID,
     state.auctionAccount,
     centralState,
+    resellingStateAccount,
     stateAccount,
     feePayer,
     quoteMint,
