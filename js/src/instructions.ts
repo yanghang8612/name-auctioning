@@ -370,8 +370,8 @@ export class claimInstruction {
 export class resellInstruction {
   tag: number;
   name: string;
-  minimumPrice: number;
-  endAuctionAt: number;
+  minimumPrice: BN;
+  endAuctionAt: BN;
 
   static schema: Schema = new Map([
     [
@@ -395,8 +395,8 @@ export class resellInstruction {
   }) {
     this.tag = 4;
     this.name = obj.name;
-    this.minimumPrice = obj.minimumPrice;
-    this.endAuctionAt = obj.endAuctionAt;
+    this.minimumPrice = new BN(obj.minimumPrice);
+    this.endAuctionAt = new BN(obj.endAuctionAt);
   }
 
   serialize(): Uint8Array {
