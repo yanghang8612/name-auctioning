@@ -85,10 +85,10 @@ impl Processor {
             ProgramInstruction::Resell {
                 name,
                 minimum_price,
-                auction_duration,
+                end_auction_at,
             } => {
                 msg!("Instruction: Resell");
-                process_resell(program_id, accounts, name, minimum_price, auction_duration)?;
+                process_resell(program_id, accounts, name, minimum_price, end_auction_at)?;
             }
         }
         Ok(())

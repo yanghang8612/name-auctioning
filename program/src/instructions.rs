@@ -94,7 +94,7 @@ pub enum ProgramInstruction {
     Resell {
         name: String,
         minimum_price: u64,
-        auction_duration: u64,
+        end_auction_at: u64, // Unix timestamp
     },
 }
 
@@ -240,7 +240,7 @@ pub fn resell(
     let data = ProgramInstruction::Resell {
         name,
         minimum_price,
-        auction_duration,
+        end_auction_at: auction_duration,
     }
     .try_to_vec()
     .unwrap();

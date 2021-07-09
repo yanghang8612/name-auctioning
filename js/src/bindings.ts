@@ -206,7 +206,7 @@ export async function resellDomain(
   destinationTokenAccount: PublicKey,
   tldAuthority: PublicKey,
   minimumPrice: number, // with precision
-  auctionDuration: number // in s
+  endAuctionAt: number // Unix timestamp in s
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -243,7 +243,7 @@ export async function resellDomain(
   let initCentralStateInstruction = new resellInstruction({
     name,
     minimumPrice,
-    auctionDuration,
+    endAuctionAt,
   }).getInstruction(
     PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,

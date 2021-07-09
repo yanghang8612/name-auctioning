@@ -97,7 +97,7 @@ pub fn process_resell(
     accounts: &[AccountInfo],
     name: String,
     minimum_price: u64,
-    auction_duration: u64,
+    en_auction_at: u64,
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
 
@@ -279,7 +279,7 @@ pub fn process_resell(
         accounts.system_program,
         accounts.auction,
         accounts.fee_payer,
-        Some(auction_duration),
+        Some(en_auction_at),
         accounts.state,
         *accounts.name.key,
         minimum_price,
