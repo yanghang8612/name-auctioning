@@ -25,6 +25,8 @@ export async function findActiveAuctionsForUser(
         offset: 32,
         bytes: userAccount.toBase58(),
       },
+    },
+    {
       datasize: 222,
     },
   ];
