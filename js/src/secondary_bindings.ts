@@ -27,7 +27,7 @@ export async function findActiveAuctionsForUser(
       },
     },
     {
-      datasize: 222,
+      dataSize: 222,
     },
   ];
   return await getFilteredProgramAccounts(
