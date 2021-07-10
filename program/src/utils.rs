@@ -135,6 +135,7 @@ impl Cpi {
         winner_pot_token_account: &AccountInfo<'a>,
         quote_mint: &AccountInfo<'a>,
         authority: &AccountInfo<'a>,
+        bonfida_vault: &AccountInfo<'a>,
         resource: Pubkey,
         signer_seeds: &[&[u8]],
         fee_percentage: u64,
@@ -146,6 +147,7 @@ impl Cpi {
             *winner_account.key,
             *winner_pot_token_account.key,
             *quote_mint.key,
+            *bonfida_vault.key,
             ClaimBidArgs {
                 resource,
                 fee_percentage,
@@ -165,6 +167,7 @@ impl Cpi {
                 quote_mint.clone(),
                 clock_sysvar_account.clone(),
                 spl_token_program.clone(),
+                bonfida_vault.clone()
             ],
             &[signer_seeds],
         )

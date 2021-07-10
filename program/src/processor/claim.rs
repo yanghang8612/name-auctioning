@@ -85,7 +85,6 @@ fn parse_accounts<'a, 'b: 'a>(
         return Err(ProgramError::InvalidArgument);
     };
     if let Some(fida_discount) = a.fida_discount_opt {
-        check_account_owner(fida_discount, a.fida_discount_owner_opt.unwrap().key).unwrap();
         check_signer(a.fida_discount_owner_opt.unwrap()).unwrap();
     }
 
@@ -185,6 +184,10 @@ pub fn process_claim(
         let mut fee_tier = 0;
         if let Some(fida_discount) = accounts.fida_discount_opt {
             let discount_data = Account::unpack(&fida_discount.data.borrow())?;
+            if &discount_data.owner != accounts.fida_discount_owner_opt.unwrap().key {
+                msg!("Wrong fida discount owner");
+                return Err(ProgramError::InvalidArgument);
+            }
             fee_tier = match FEE_TIERS
                 .iter()
                 .position(|&t| discount_data.amount < (t as u64))
@@ -207,6 +210,7 @@ pub fn process_claim(
         accounts.bidder_pot_token,
         accounts.quote_mint,
         accounts.state,
+        accounts.bonfida_vault,
         *accounts.name.key,
         signer_seeds,
         fee_percentage,
