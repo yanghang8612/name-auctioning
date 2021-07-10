@@ -2,19 +2,23 @@ use std::str::FromStr;
 
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
+    borsh::try_from_slice_unchecked,
+    clock::Clock,
     entrypoint::ProgramResult,
     msg,
     program_error::ProgramError,
     program_pack::Pack,
     pubkey::Pubkey,
     system_program,
-    sysvar::{self},
+    sysvar::{self, Sysvar},
 };
+use spl_auction::processor::AuctionData;
 use spl_name_service::state::get_seeds_and_key;
-use spl_token::state::Account;
+use spl_token::state::{Account, AccountState};
 
 use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, FEES, FEE_TIERS};
 use crate::{
+    error::NameAuctionError,
     state::{NameAuction, ResellingAuction},
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
@@ -171,6 +175,38 @@ pub fn process_claim(
             &Pubkey::new(&reselling_state.token_destination_account),
         )
         .unwrap();
+
+        let auction: AuctionData =
+            try_from_slice_unchecked(&accounts.auction.data.borrow()).unwrap();
+        let clock = Clock::from_account_info(accounts.clock_sysvar).unwrap();
+
+        if !auction.ended(clock.unix_timestamp).unwrap() {
+            msg!("The auction must have ended to reclaim");
+            return Err(NameAuctionError::AuctionInProgress.into());
+        }
+
+        if let spl_auction::processor::BidState::EnglishAuction { bids, max } = auction.bid_state {
+            if bids.is_empty() {
+                msg!("The auction has no bidder and can be reclaimed!");
+                let token_destination_account_owner =
+                    spl_token::state::Account::unpack(&accounts.destination_token.data.borrow())?;
+                check_account_key(
+                    accounts.bidder_wallet,
+                    &token_destination_account_owner.owner,
+                )?;
+
+                Cpi::transfer_name_account(
+                    accounts.naming_service_program,
+                    accounts.central_state,
+                    accounts.name,
+                    &accounts.bidder_wallet.key,
+                    Some(central_state_signer_seeds),
+                )?;
+                return Ok(());
+            }
+        } else {
+            unreachable!()
+        }
 
         Cpi::transfer_name_account(
             accounts.naming_service_program,
