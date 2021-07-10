@@ -26,9 +26,6 @@ export async function findActiveAuctionsForUser(
         bytes: userAccount.toBase58(),
       },
     },
-    {
-      dataSize: 222,
-    },
   ];
   return await getFilteredProgramAccounts(
     connection,
