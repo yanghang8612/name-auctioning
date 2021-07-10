@@ -13,12 +13,7 @@ import { AUCTION_PROGRAM_ID, PROGRAM_ID } from './bindings';
 export async function findActiveAuctionsForUser(
   connection: Connection,
   userAccount: PublicKey
-): Promise<
-  {
-    publicKey: PublicKey;
-    accountInfo: AccountInfo<Buffer>;
-  }[]
-> {
+) {
   const filters = [
     {
       memcmp: {
@@ -27,11 +22,14 @@ export async function findActiveAuctionsForUser(
       },
     },
   ];
-  return await getFilteredProgramAccounts(
+  const accounts = await getFilteredProgramAccounts(
     connection,
     AUCTION_PROGRAM_ID,
     filters
   );
+  return accounts.map((a) => {
+    return new PublicKey(a.accountInfo.data.slice(64, 96));
+  });
 }
 
 export async function findEndingAuctions(
