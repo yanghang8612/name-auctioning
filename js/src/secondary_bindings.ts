@@ -122,3 +122,20 @@ export async function performReverseLookup(
   let nameLength = new BN(name.data.slice(0, 4), 'le').toNumber();
   return name.data.slice(4, 4 + nameLength).toString();
 }
+
+export async function getDestinationTokenAccount(
+  connection: Connection,
+  nameAccount: PublicKey
+): Promise<PublicKey> {
+  let [resellingStateAccount] = await PublicKey.findProgramAddress(
+    [nameAccount.toBytes(), Uint8Array.from([1, 1])],
+    PROGRAM_ID
+  );
+  let destinationTokenData = (
+    await connection.getAccountInfo(resellingStateAccount)
+  )?.data;
+  if (!destinationTokenData) {
+    throw 'Could not retrieve reselling state. Is this a reselling auction?';
+  }
+  return new PublicKey(destinationTokenData);
+}
