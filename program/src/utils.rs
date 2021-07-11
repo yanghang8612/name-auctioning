@@ -167,7 +167,7 @@ impl Cpi {
                 quote_mint.clone(),
                 clock_sysvar_account.clone(),
                 spl_token_program.clone(),
-                bonfida_vault.clone()
+                bonfida_vault.clone(),
             ],
             &[signer_seeds],
         )

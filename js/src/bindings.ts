@@ -127,6 +127,30 @@ export async function createNameAuction(
   return [[], instructions];
 }
 
+export async function reclaimName(
+  connection: Connection,
+  nameAccount: PublicKey,
+  name: string,
+  feePayer: PublicKey,
+  quoteMint: PublicKey,
+  ownerWallet: PublicKey,
+  tldAuthority: PublicKey
+): Promise<PrimedTransaction> {
+  return await claimName(
+    connection,
+    nameAccount,
+    name,
+    feePayer,
+    quoteMint,
+    ownerWallet,
+    PublicKey.default,
+    PublicKey.default,
+    new BN(0),
+    0,
+    tldAuthority
+  );
+}
+
 export async function claimName(
   connection: Connection,
   nameAccount: PublicKey,

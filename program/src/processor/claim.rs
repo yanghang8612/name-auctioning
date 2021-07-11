@@ -14,7 +14,7 @@ use solana_program::{
 };
 use spl_auction::processor::AuctionData;
 use spl_name_service::state::get_seeds_and_key;
-use spl_token::state::{Account, AccountState};
+use spl_token::state::Account;
 
 use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, FEES, FEE_TIERS};
 use crate::{
@@ -88,7 +88,7 @@ fn parse_accounts<'a, 'b: 'a>(
         msg!("Wrong Bonfida vault address");
         return Err(ProgramError::InvalidArgument);
     };
-    if let Some(fida_discount) = a.fida_discount_opt {
+    if a.fida_discount_opt.is_some() {
         check_signer(a.fida_discount_owner_opt.unwrap()).unwrap();
     }
 
@@ -185,7 +185,8 @@ pub fn process_claim(
             return Err(NameAuctionError::AuctionInProgress.into());
         }
 
-        if let spl_auction::processor::BidState::EnglishAuction { bids, max } = auction.bid_state {
+        if let spl_auction::processor::BidState::EnglishAuction { bids, max: _ } = auction.bid_state
+        {
             if bids.is_empty() {
                 msg!("The auction has no bidder and can be reclaimed!");
                 let token_destination_account_owner =
