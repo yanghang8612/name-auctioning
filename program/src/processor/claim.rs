@@ -116,11 +116,6 @@ pub fn process_claim(
         return Err(ProgramError::InvalidArgument);
     }
 
-    if accounts.name.data_len() != 0 {
-        msg!("Name account is already initialized.");
-        return Err(ProgramError::AccountAlreadyInitialized);
-    }
-
     let state = NameAuction::unpack_unchecked(&accounts.state.data.borrow())?;
 
     check_account_key(accounts.quote_mint, &Pubkey::new(&state.quote_mint))?;
