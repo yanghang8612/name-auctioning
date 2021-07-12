@@ -394,14 +394,10 @@ export class resellInstruction {
     ],
   ]);
 
-  constructor(obj: {
-    name: string;
-    minimumPrice: number;
-    endAuctionAt: number;
-  }) {
+  constructor(obj: { name: string; minimumPrice: BN; endAuctionAt: number }) {
     this.tag = 4;
     this.name = obj.name;
-    this.minimumPrice = new BN(obj.minimumPrice);
+    this.minimumPrice = obj.minimumPrice;
     this.endAuctionAt = new BN(obj.endAuctionAt);
   }
 

@@ -230,7 +230,7 @@ export async function resellDomain(
   nameOwnerAccount: PublicKey,
   destinationTokenAccount: PublicKey,
   tldAuthority: PublicKey,
-  minimumPrice: number, // with precision
+  minimumPrice: BN, // with precision
   endAuctionAt: number // Unix timestamp in s
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
