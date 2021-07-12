@@ -149,6 +149,7 @@ export async function reclaimName(
     new BN(0),
     0,
     tldAuthority,
+    undefined,
     destinationTokenAccount
   );
 }
