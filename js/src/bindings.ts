@@ -135,7 +135,7 @@ export async function reclaimName(
   quoteMint: PublicKey,
   ownerWallet: PublicKey,
   tldAuthority: PublicKey,
-  destinationTokenAccount?: PublicKey
+  destinationTokenAccount: PublicKey
 ): Promise<PrimedTransaction> {
   return await claimName(
     connection,
