@@ -9,6 +9,7 @@ import {
 } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
+  BONFIDA_BNB,
   claimInstruction,
   createInstruction,
   initInstruction,
@@ -134,7 +135,7 @@ export async function reclaimName(
   quoteMint: PublicKey,
   ownerWallet: PublicKey,
   tldAuthority: PublicKey,
-  destinationTokenAccount: PublicKey
+  destinationTokenAccount?: PublicKey
 ): Promise<PrimedTransaction> {
   return await claimName(
     connection,
@@ -164,8 +165,8 @@ export async function claimName(
   lamports: BN,
   space: number,
   tldAuthority: PublicKey,
-  destinationTokenAccount: PublicKey,
-  discountAccount?: PublicKey
+  discountAccount?: PublicKey,
+  destinationTokenAccount?: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -205,7 +206,7 @@ export async function claimName(
     stateAccount,
     feePayer,
     quoteMint,
-    destinationTokenAccount,
+    destinationTokenAccount ? destinationTokenAccount : BONFIDA_BNB,
     bidderWallet,
     bidderPot,
     bidderPotTokenAccount,
