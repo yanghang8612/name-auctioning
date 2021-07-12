@@ -220,6 +220,11 @@ pub fn process_claim(
                 msg!("Wrong fida discount owner");
                 return Err(ProgramError::InvalidArgument);
             }
+            let destination_data = Account::unpack(&accounts.destination_token.data.borrow())?;
+            if discount_data.owner != destination_data.owner {
+                msg!("Fida discount owner does not match destination owner.");
+                return Err(ProgramError::InvalidArgument);
+            }
             fee_tier = match FEE_TIERS
                 .iter()
                 .position(|&t| discount_data.amount < (t as u64))
