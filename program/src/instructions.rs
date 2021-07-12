@@ -65,7 +65,6 @@ pub enum ProgramInstruction {
     ///   16. `[writable]` The bidder pot token account
     ///   17. `[]` The bonfida vault account
     ///   18. `[]` (Optional) The fida discount account
-    ///   19. `[signer]` (Optional) The fida dicount owner account
     Claim {
         hashed_name: [u8; 32],
         lamports: u64,
@@ -176,7 +175,6 @@ pub fn claim(
     space: u32,
     hashed_name: [u8; 32],
     discount_account_opt: Option<Pubkey>,
-    discount_account_owner_opt: Option<Pubkey>,
 ) -> Instruction {
     let data = ProgramInstruction::Claim {
         hashed_name,
@@ -206,10 +204,6 @@ pub fn claim(
     ];
     if let Some(discount_account) = discount_account_opt {
         accounts.push(AccountMeta::new_readonly(discount_account, false));
-        accounts.push(AccountMeta::new_readonly(
-            discount_account_owner_opt.unwrap(),
-            true,
-        ));
     }
 
     Instruction {

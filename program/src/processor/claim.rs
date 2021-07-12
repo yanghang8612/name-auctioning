@@ -43,7 +43,6 @@ struct Accounts<'a, 'b: 'a> {
     bidder_pot_token: &'a AccountInfo<'b>,
     bonfida_vault: &'a AccountInfo<'b>,
     fida_discount_opt: Option<&'a AccountInfo<'b>>,
-    fida_discount_owner_opt: Option<&'a AccountInfo<'b>>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -71,7 +70,6 @@ fn parse_accounts<'a, 'b: 'a>(
         bidder_pot_token: next_account_info(accounts_iter)?,
         bonfida_vault: next_account_info(accounts_iter)?,
         fida_discount_opt: next_account_info(accounts_iter).ok(),
-        fida_discount_owner_opt: next_account_info(accounts_iter).ok(),
     };
     let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
@@ -88,9 +86,6 @@ fn parse_accounts<'a, 'b: 'a>(
         msg!("Wrong Bonfida vault address");
         return Err(ProgramError::InvalidArgument);
     };
-    if a.fida_discount_opt.is_some() {
-        check_signer(a.fida_discount_owner_opt.unwrap()).unwrap();
-    }
 
     Ok(a)
 }
@@ -216,10 +211,6 @@ pub fn process_claim(
         let mut fee_tier = 0;
         if let Some(fida_discount) = accounts.fida_discount_opt {
             let discount_data = Account::unpack(&fida_discount.data.borrow())?;
-            if &discount_data.owner != accounts.fida_discount_owner_opt.unwrap().key {
-                msg!("Wrong fida discount owner");
-                return Err(ProgramError::InvalidArgument);
-            }
             let destination_data = Account::unpack(&accounts.destination_token.data.borrow())?;
             if discount_data.owner != destination_data.owner {
                 msg!("Fida discount owner does not match destination owner.");

@@ -9,7 +9,6 @@ import {
 } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
-  BONFIDA_BNB,
   claimInstruction,
   createInstruction,
   initInstruction,
@@ -134,7 +133,8 @@ export async function reclaimName(
   feePayer: PublicKey,
   quoteMint: PublicKey,
   ownerWallet: PublicKey,
-  tldAuthority: PublicKey
+  tldAuthority: PublicKey,
+  destinationTokenAccount: PublicKey
 ): Promise<PrimedTransaction> {
   return await claimName(
     connection,
@@ -147,7 +147,8 @@ export async function reclaimName(
     PublicKey.default,
     new BN(0),
     0,
-    tldAuthority
+    tldAuthority,
+    destinationTokenAccount
   );
 }
 
@@ -163,8 +164,8 @@ export async function claimName(
   lamports: BN,
   space: number,
   tldAuthority: PublicKey,
-  discountAccount?: PublicKey,
-  discountOwnerAccount?: PublicKey
+  destinationTokenAccount: PublicKey,
+  discountAccount?: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -181,12 +182,8 @@ export async function claimName(
   let hashed_name = await getHashedName(name);
 
   let [resellingStateAccount] = await PublicKey.findProgramAddress(
-    [nameAccount.toBuffer(), Buffer.from([1, 1])],
+    [nameAccount.toBytes(), Uint8Array.from([1, 1])],
     PROGRAM_ID
-  );
-
-  let destinationTokenAccount = await connection.getAccountInfo(
-    resellingStateAccount
   );
 
   let claimNameInstruction = new claimInstruction({
@@ -208,14 +205,11 @@ export async function claimName(
     stateAccount,
     feePayer,
     quoteMint,
-    destinationTokenAccount
-      ? new PublicKey(destinationTokenAccount.data)
-      : BONFIDA_BNB,
+    destinationTokenAccount,
     bidderWallet,
     bidderPot,
     bidderPotTokenAccount,
-    discountAccount,
-    discountOwnerAccount
+    discountAccount
   );
 
   let instructions = [claimNameInstruction];
