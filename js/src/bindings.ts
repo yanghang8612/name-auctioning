@@ -12,6 +12,7 @@ import {
   BONFIDA_BNB,
   claimInstruction,
   createInstruction,
+  createReverseInstruction,
   initInstruction,
   resellInstruction,
 } from './instructions';
@@ -281,6 +282,42 @@ export async function resellDomain(
     stateAccount,
     resellingStateAccount,
     destinationTokenAccount,
+    feePayer
+  );
+
+  let instructions = [initCentralStateInstruction];
+
+  return [[], instructions];
+}
+
+export async function createReverseName(
+  nameAccount: PublicKey,
+  name: string,
+  feePayer: PublicKey,
+  tldAuthority: PublicKey
+): Promise<PrimedTransaction> {
+  let [centralState] = await PublicKey.findProgramAddress(
+    [PROGRAM_ID.toBuffer()],
+    PROGRAM_ID
+  );
+
+  let hashedReverseLookup = await getHashedName(nameAccount.toBase58());
+  let reverseLookupAccount = await getNameAccountKey(
+    hashedReverseLookup,
+    centralState
+  );
+
+  let initCentralStateInstruction = new createReverseInstruction({
+    name,
+  }).getInstruction(
+    PROGRAM_ID,
+    SYSVAR_RENT_PUBKEY,
+    SYSVAR_CLOCK_PUBKEY,
+    NAMING_SERVICE_PROGRAM_ID,
+    tldAuthority,
+    reverseLookupAccount,
+    SystemProgram.programId,
+    centralState,
     feePayer
   );
 

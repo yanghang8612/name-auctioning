@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use name_auctioning::{
-    instructions::{create, init, resell},
+    instructions::{create, create_reverse, init, resell},
     processor::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, TOKEN_MINT},
 };
 use solana_program::{
@@ -420,6 +420,19 @@ async fn test_resell() {
     )
     .unwrap();
     sign_send_instruction(&mut ctx, create_name_instruction, vec![]) // Signed by payer
+        .await
+        .unwrap();
+
+    let create_reverse_naming_auction_instruction = create_reverse(
+        program_id,
+        root_name_account_key,
+        reverse_lookup_account_key,
+        derived_central_state_key,
+        ctx.payer.pubkey(),
+        name.to_owned(),
+    );
+
+    sign_send_instruction(&mut ctx, create_reverse_naming_auction_instruction, vec![])
         .await
         .unwrap();
 

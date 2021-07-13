@@ -240,17 +240,18 @@ pub fn process_create(
         &signer_seeds,
     )?;
 
-    Cpi::create_reverse_lookup_account(
-        accounts.naming_service_program,
-        accounts.system_program,
-        accounts.reverse_lookup,
-        accounts.fee_payer,
-        name,
-        hashed_reverse_lookup,
-        accounts.central_state,
-        accounts.rent_sysvar,
-        central_state_signer_seeds,
-    )?;
-
+    if accounts.reverse_lookup.data_len() == 0 {
+        Cpi::create_reverse_lookup_account(
+            accounts.naming_service_program,
+            accounts.system_program,
+            accounts.reverse_lookup,
+            accounts.fee_payer,
+            name,
+            hashed_reverse_lookup,
+            accounts.central_state,
+            accounts.rent_sysvar,
+            central_state_signer_seeds,
+        )?;
+    }
     Ok(())
 }

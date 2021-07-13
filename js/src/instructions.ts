@@ -174,7 +174,7 @@ export class createInstruction {
       {
         pubkey: centralStateAccount,
         isSigner: false,
-        isWritable: true,
+        isWritable: false,
       },
       {
         pubkey: stateAccount,
@@ -469,7 +469,7 @@ export class resellInstruction {
       {
         pubkey: centralStateAccount,
         isSigner: false,
-        isWritable: true,
+        isWritable: false,
       },
       {
         pubkey: stateAccount,
@@ -485,6 +485,95 @@ export class resellInstruction {
         pubkey: destinationTokenAccount,
         isSigner: false,
         isWritable: true,
+      },
+      {
+        pubkey: feePayer,
+        isSigner: true,
+        isWritable: true,
+      },
+    ];
+
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+}
+
+export class createReverseInstruction {
+  tag: number;
+  name: string;
+
+  static schema: Schema = new Map([
+    [
+      createReverseInstruction,
+      {
+        kind: 'struct',
+        fields: [
+          ['tag', 'u8'],
+          ['name', 'string'],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: { name: string }) {
+    this.tag = 5;
+    this.name = obj.name;
+  }
+
+  serialize(): Uint8Array {
+    return serialize(createReverseInstruction.schema, this);
+  }
+
+  getInstruction(
+    programId: PublicKey,
+    rentSysvarAccount: PublicKey,
+    clockSysvarAccount: PublicKey,
+    namingServiceProgram: PublicKey,
+    rootDomain: PublicKey,
+    reverseLookupAccount: PublicKey,
+    systemProgram: PublicKey,
+    centralStateAccount: PublicKey,
+    feePayer: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.from(this.serialize());
+    let keys = [
+      {
+        pubkey: rentSysvarAccount,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: clockSysvarAccount,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: namingServiceProgram,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: rootDomain,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: reverseLookupAccount,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: systemProgram,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: centralStateAccount,
+        isSigner: false,
+        isWritable: false,
       },
       {
         pubkey: feePayer,

@@ -1,8 +1,8 @@
 use crate::{
     instructions::ProgramInstruction,
     processor::{
-        claim::process_claim, create::process_create, init::process_init, resell::process_resell,
-        reset_auction::process_reset_auction,
+        claim::process_claim, create::process_create, create_reverse::process_create_reverse,
+        init::process_init, resell::process_resell, reset_auction::process_reset_auction,
     },
 };
 use borsh::BorshDeserialize;
@@ -13,6 +13,7 @@ use solana_program::{
 
 pub mod claim;
 pub mod create;
+pub mod create_reverse;
 pub mod init;
 pub mod resell;
 pub mod reset_auction;
@@ -89,6 +90,10 @@ impl Processor {
             } => {
                 msg!("Instruction: Resell");
                 process_resell(program_id, accounts, name, minimum_price, end_auction_at)?;
+            }
+            ProgramInstruction::CreateReverse { name } => {
+                msg!("Instruction: Create Reverse");
+                process_create_reverse(program_id, accounts, name)?;
             }
         }
         Ok(())
