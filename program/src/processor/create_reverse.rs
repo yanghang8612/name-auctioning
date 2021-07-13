@@ -14,7 +14,6 @@ use crate::utils::{check_account_key, check_account_owner, check_signer, Cpi};
 
 struct Accounts<'a, 'b: 'a> {
     rent_sysvar: &'a AccountInfo<'b>,
-    clock_sysvar: &'a AccountInfo<'b>,
     naming_service_program: &'a AccountInfo<'b>,
     root_domain: &'a AccountInfo<'b>,
     reverse_lookup: &'a AccountInfo<'b>,
@@ -30,7 +29,6 @@ fn parse_accounts<'a, 'b: 'a>(
     let accounts_iter = &mut accounts.iter();
     let a = Accounts {
         rent_sysvar: next_account_info(accounts_iter)?,
-        clock_sysvar: next_account_info(accounts_iter)?,
         naming_service_program: next_account_info(accounts_iter)?,
         root_domain: next_account_info(accounts_iter)?,
         reverse_lookup: next_account_info(accounts_iter)?,
@@ -40,7 +38,6 @@ fn parse_accounts<'a, 'b: 'a>(
     };
 
     check_account_key(a.rent_sysvar, &sysvar::rent::id()).unwrap();
-    check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();

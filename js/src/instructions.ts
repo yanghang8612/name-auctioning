@@ -530,11 +530,9 @@ export class createReverseInstruction {
   getInstruction(
     programId: PublicKey,
     rentSysvarAccount: PublicKey,
-    clockSysvarAccount: PublicKey,
     namingServiceProgram: PublicKey,
     rootDomain: PublicKey,
     reverseLookupAccount: PublicKey,
-    systemProgram: PublicKey,
     centralStateAccount: PublicKey,
     feePayer: PublicKey
   ): TransactionInstruction {
@@ -542,11 +540,6 @@ export class createReverseInstruction {
     let keys = [
       {
         pubkey: rentSysvarAccount,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: clockSysvarAccount,
         isSigner: false,
         isWritable: false,
       },
@@ -566,7 +559,7 @@ export class createReverseInstruction {
         isWritable: true,
       },
       {
-        pubkey: systemProgram,
+        pubkey: PublicKey.default,
         isSigner: false,
         isWritable: false,
       },

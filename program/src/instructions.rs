@@ -184,7 +184,6 @@ pub fn create_reverse(
         .unwrap();
     let accounts = vec![
         AccountMeta::new_readonly(sysvar::rent::id(), false),
-        AccountMeta::new_readonly(sysvar::clock::id(), false),
         AccountMeta::new_readonly(spl_name_service::id(), false),
         AccountMeta::new_readonly(root_domain, false),
         AccountMeta::new(reverse_lookup_account, false),

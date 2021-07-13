@@ -312,11 +312,9 @@ export async function createReverseName(
   }).getInstruction(
     PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
-    SYSVAR_CLOCK_PUBKEY,
     NAMING_SERVICE_PROGRAM_ID,
     tldAuthority,
     reverseLookupAccount,
-    SystemProgram.programId,
     centralState,
     feePayer
   );
