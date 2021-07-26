@@ -37,7 +37,7 @@ export const BASE_AUCTION_DATA_SIZE =
   32 + 32 + 32 + 9 + 9 + 9 + 9 + 1 + 32 + 1 + 8 + 8;
 
 export const ROOT_DOMAIN_ACCOUNT = new PublicKey(
-  '98vSQyPBwaG8wFnGJesg6BX2kThhrbbx5MReMd7WDDC3'
+  '58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx'
   // "4MpujQVQLPPsC8ToEcSepSvtYCf5ZBf2odxZkZ2Qz8QH"
 );
 
