@@ -52,18 +52,19 @@ pub enum ProgramInstruction {
     ///   4. `[]` The root domain account
     ///   5. `[]` The name account
     ///   6. `[]` The system program
-    ///   7. `[writable]` The auction account
-    ///   8. `[]` The central state account
-    ///   9. `[writable]` The state account
-    ///   10. `[]` The auction program
-    ///   11. `[writable, signer]` The fee payer account
-    ///   12. `[writable]` The quote mint account
-    ///   13. `[writable]` The payout destination token account
-    ///   14. `[signer]` The bidder wallet account
-    ///   15. `[writable]` The bidder pot account
-    ///   16. `[writable]` The bidder pot token account
-    ///   17. `[]` The bonfida vault account
-    ///   18. `[]` (Optional) The fida discount account
+    ///   7. `[]` The auction program
+    ///   8. `[writable]` The auction account
+    ///   9. `[]` The central state account
+    ///   10. `[writable]` The state account
+    ///   11. `[writable]` The reselling account
+    ///   12. `[writable, signer]` The fee payer account
+    ///   13. `[writable]` The quote mint account
+    ///   14. `[writable]` The payout destination token account
+    ///   15. `[signer]` The bidder wallet account
+    ///   16. `[writable]` The bidder pot account
+    ///   17. `[writable]` The bidder pot token account
+    ///   18. `[]` The bonfida vault account
+    ///   19. `[]` (Optional) The fida discount account
     Claim {
         hashed_name: [u8; 32],
         lamports: u64,
