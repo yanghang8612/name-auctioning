@@ -16,7 +16,7 @@ use spl_auction::processor::AuctionData;
 use spl_name_service::state::get_seeds_and_key;
 use spl_token::state::Account;
 
-use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, FEES, FEE_TIERS};
+use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, FEES, FEE_TIERS, FIDA_MINT};
 use crate::{
     error::NameAuctionError,
     state::{NameAuction, ResellingAuction},
@@ -214,6 +214,10 @@ pub fn process_claim(
             let destination_data = Account::unpack(&accounts.destination_token.data.borrow())?;
             if discount_data.owner != destination_data.owner {
                 msg!("Fida discount owner does not match destination owner.");
+                return Err(ProgramError::InvalidArgument);
+            }
+            if discount_data.mint.to_string() != FIDA_MINT {
+                msg!("The discount account should be a FIDA token account");
                 return Err(ProgramError::InvalidArgument);
             }
             fee_tier = match FEE_TIERS
