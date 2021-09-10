@@ -24,7 +24,7 @@ use crate::{
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
 
-use super::{AUCTION_MAX_LENGTH, AUCTION_PROGRAM_ID};
+use super::{AUCTION_MAX_LENGTH, AUCTION_PROGRAM_ID, ROOT_DOMAIN_ACCOUNT};
 
 struct Accounts<'a, 'b: 'a> {
     rent_sysvar: &'a AccountInfo<'b>,
@@ -79,6 +79,11 @@ fn parse_accounts<'a, 'b: 'a>(
         .or_else(|_| check_account_owner(a.state, program_id))
         .unwrap();
     check_signer(a.fee_payer).unwrap();
+    check_account_key(
+        a.root_domain,
+        &Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
+    )
+    .unwrap();
 
     Ok(a)
 }

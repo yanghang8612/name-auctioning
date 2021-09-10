@@ -1,8 +1,9 @@
 use std::str::FromStr;
 
+use borsh::BorshSerialize;
 use name_auctioning::{
     instructions::{create, create_reverse, init, resell},
-    processor::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, TOKEN_MINT},
+    processor::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, ROOT_DOMAIN_ACCOUNT, TOKEN_MINT},
 };
 use solana_program::{
     hash::hashv, instruction::Instruction, program_option::COption, program_pack::Pack,
@@ -94,6 +95,24 @@ async fn test() {
     let (derived_central_state_key, state_nonce) =
         Pubkey::find_program_address(&[&program_id.to_bytes()], &program_id);
 
+    let root_domain_data = spl_name_service::state::NameRecordHeader {
+        parent_name: Pubkey::default(),
+        owner: derived_central_state_key,
+        class: Pubkey::default(),
+    }
+    .try_to_vec()
+    .unwrap();
+
+    program_test.add_account(
+        Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
+        Account {
+            lamports: 1_000_000,
+            data: root_domain_data,
+            owner: spl_name_service::id(),
+            ..Account::default()
+        },
+    );
+
     // program_test.add_account(
     //     derived_state_key,
     //     Account {
@@ -118,36 +137,7 @@ async fn test() {
         .await
         .unwrap();
 
-    let root_name = ".sol";
-
-    let hashed_root_name: Vec<u8> = hashv(&[(HASH_PREFIX.to_owned() + root_name).as_bytes()])
-        .0
-        .to_vec();
-    let (root_name_account_key, _) = get_seeds_and_key(
-        &spl_name_service::id(),
-        hashed_root_name.clone(),
-        None,
-        None,
-    );
-
-    let create_name_instruction = spl_name_service::instruction::create(
-        spl_name_service::id(),
-        NameRegistryInstruction::Create {
-            hashed_name: hashed_root_name,
-            lamports: 1_000_000,
-            space: 1_000,
-        },
-        root_name_account_key,
-        ctx.payer.pubkey(),
-        derived_central_state_key,
-        None,
-        None,
-        None,
-    )
-    .unwrap();
-    sign_send_instruction(&mut ctx, create_name_instruction, vec![])
-        .await
-        .unwrap();
+    let root_name_account_key = Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap();
 
     let name_record_header = NameRecordHeader::unpack_from_slice(
         &ctx.banks_client
@@ -313,6 +303,28 @@ async fn test_resell() {
     let (derived_central_state_key, state_nonce) =
         Pubkey::find_program_address(&[&program_id.to_bytes()], &program_id);
 
+    let temp_owner = Keypair::new();
+
+    let root_domain_data = spl_name_service::state::NameRecordHeader {
+        parent_name: Pubkey::default(),
+        owner: temp_owner.pubkey(),
+        class: Pubkey::default(),
+    }
+    .try_to_vec()
+    .unwrap();
+
+    let root_name_account_key = Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap();
+
+    program_test.add_account(
+        Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
+        Account {
+            lamports: 1_000_000,
+            data: root_domain_data,
+            owner: spl_name_service::id(),
+            ..Account::default()
+        },
+    );
+
     let mut ctx = program_test.start_with_context().await;
 
     let init_instruction = init(
@@ -325,49 +337,6 @@ async fn test_resell() {
     sign_send_instruction(&mut ctx, init_instruction, vec![])
         .await
         .unwrap();
-
-    let root_name = ".sol";
-
-    let hashed_root_name: Vec<u8> = hashv(&[(HASH_PREFIX.to_owned() + root_name).as_bytes()])
-        .0
-        .to_vec();
-    let (root_name_account_key, _) = get_seeds_and_key(
-        &spl_name_service::id(),
-        hashed_root_name.clone(),
-        None,
-        None,
-    );
-
-    // Create the root, temporarily owned by the payer
-    let create_name_instruction = spl_name_service::instruction::create(
-        spl_name_service::id(),
-        NameRegistryInstruction::Create {
-            hashed_name: hashed_root_name,
-            lamports: 1_000_000,
-            space: 1_000,
-        },
-        root_name_account_key,
-        ctx.payer.pubkey(),
-        ctx.payer.pubkey(),
-        None,
-        None,
-        None,
-    )
-    .unwrap();
-    sign_send_instruction(&mut ctx, create_name_instruction, vec![])
-        .await
-        .unwrap();
-
-    let name_record_header = NameRecordHeader::unpack_from_slice(
-        &ctx.banks_client
-            .get_account(root_name_account_key)
-            .await
-            .unwrap()
-            .unwrap()
-            .data,
-    )
-    .unwrap();
-    println!("Name Record Header: {:?}", name_record_header);
 
     let name = "megosiani";
     let hashed_name: Vec<u8> = hashv(&[(HASH_PREFIX.to_owned() + name).as_bytes()])
@@ -416,10 +385,10 @@ async fn test_resell() {
         ctx.payer.pubkey(),
         None,
         Some(root_name_account_key),
-        Some(ctx.payer.pubkey()),
+        Some(temp_owner.pubkey()),
     )
     .unwrap();
-    sign_send_instruction(&mut ctx, create_name_instruction, vec![]) // Signed by payer
+    sign_send_instruction(&mut ctx, create_name_instruction, vec![&temp_owner]) // Signed by payer
         .await
         .unwrap();
 
@@ -440,11 +409,11 @@ async fn test_resell() {
         spl_name_service::id(),
         derived_central_state_key,
         root_name_account_key,
-        ctx.payer.pubkey(),
+        temp_owner.pubkey(),
         None,
     )
     .unwrap();
-    sign_send_instruction(&mut ctx, transfer_name_instr, vec![]) // Signed by payer
+    sign_send_instruction(&mut ctx, transfer_name_instr, vec![&temp_owner]) // Signed by payer
         .await
         .unwrap();
 
