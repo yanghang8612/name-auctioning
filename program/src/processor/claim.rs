@@ -81,7 +81,7 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_owner(a.auction, spl_auction_id).unwrap();
     check_account_owner(a.central_state, &program_id).unwrap();
     check_account_owner(a.state, &program_id).unwrap();
-    check_signer(a.bidder_wallet).unwrap();
+    // check_signer(a.bidder_wallet).unwrap();
     if a.bonfida_vault.key != &Pubkey::from_str(BONFIDA_VAULT).unwrap() {
         msg!("Wrong Bonfida vault address");
         return Err(ProgramError::InvalidArgument);
@@ -130,6 +130,7 @@ pub fn process_claim(
 
     let mut fee_percentage = 0;
     if accounts.name.data_is_empty() {
+        check_signer(accounts.bidder_wallet).unwrap();
         check_account_key(
             accounts.destination_token,
             &Pubkey::from_str(BONFIDA_VAULT).unwrap(),
