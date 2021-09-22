@@ -136,6 +136,7 @@ export async function reclaimName(
   quoteMint: PublicKey,
   ownerWallet: PublicKey,
   tldAuthority: PublicKey,
+  isResell: boolean,
   destinationTokenAccount: PublicKey
 ): Promise<PrimedTransaction> {
   return await claimName(
@@ -150,6 +151,7 @@ export async function reclaimName(
     new BN(0),
     0,
     tldAuthority,
+    isResell,
     undefined,
     destinationTokenAccount
   );
@@ -167,6 +169,7 @@ export async function claimName(
   lamports: BN,
   space: number,
   tldAuthority: PublicKey,
+  isResell: boolean,
   discountAccount?: PublicKey,
   destinationTokenAccount?: PublicKey
 ): Promise<PrimedTransaction> {
@@ -212,6 +215,7 @@ export async function claimName(
     bidderWallet,
     bidderPot,
     bidderPotTokenAccount,
+    isResell,
     discountAccount
   );
 

@@ -252,6 +252,7 @@ export class claimInstruction {
     bidderWallet: PublicKey,
     bidderPot: PublicKey,
     bidderPotTokenAccount: PublicKey,
+    isResell: boolean,
     discountAccount?: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
@@ -328,7 +329,7 @@ export class claimInstruction {
       },
       {
         pubkey: bidderWallet,
-        isSigner: true,
+        isSigner: !isResell,
         isWritable: false,
       },
       {
