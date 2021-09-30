@@ -95,6 +95,11 @@ pub fn process_create(
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
 
+    if name != name.to_lowercase().trim() {
+        msg!("Domain names must be lower case and have no space");
+        return Err(ProgramError::InvalidArgument);
+    }
+
     let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + &name).as_bytes()])
         .0
         .to_vec();
