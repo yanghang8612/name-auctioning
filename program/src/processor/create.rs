@@ -95,7 +95,7 @@ pub fn process_create(
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
 
-    if name != name.to_lowercase().trim() {
+    if name != name.trim().to_lowercase() {
         msg!("Domain names must be lower case and have no space");
         return Err(ProgramError::InvalidArgument);
     }
