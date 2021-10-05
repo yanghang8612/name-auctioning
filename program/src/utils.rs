@@ -19,7 +19,7 @@ use spl_auction::{
 use spl_name_service::{instruction::NameRegistryInstruction, state::NameRecordHeader};
 
 use crate::{
-    processor::{claim::BuyNowAccounts, END_AUCTION_GAP, TOKEN_MINT},
+    processor::{END_AUCTION_GAP, TOKEN_MINT},
     state::{NameAuction, ReverseLookup},
 };
 

@@ -47,7 +47,7 @@ struct Accounts<'a, 'b: 'a> {
     fida_discount: &'a AccountInfo<'b>,
     buy_now: Option<BuyNowAccounts<'a, 'b>>,
 }
-
+#[derive(Clone, Copy)]
 pub struct BuyNowAccounts<'a, 'b: 'a> {
     pub buy_now: &'a AccountInfo<'b>,
     pub bonfida_sol_vault: &'a AccountInfo<'b>,
