@@ -85,6 +85,7 @@ export class initInstruction {
 export class createInstruction {
   tag: number;
   name: string;
+  maxPrice?: BN;
 
   static schema: Schema = new Map([
     [
@@ -94,14 +95,16 @@ export class createInstruction {
         fields: [
           ['tag', 'u8'],
           ['name', 'string'],
+          ['maxPrice', { kind: 'option', type: 'u64' }],
         ],
       },
     ],
   ]);
 
-  constructor(obj: { name: string }) {
+  constructor(obj: { name: string; maxPrice?: BN }) {
     this.tag = 1;
     this.name = obj.name;
+    this.maxPrice = obj.maxPrice;
   }
 
   serialize(): Uint8Array {
@@ -122,7 +125,8 @@ export class createInstruction {
     centralStateAccount: PublicKey,
     stateAccount: PublicKey,
     feePayer: PublicKey,
-    quoteMint: PublicKey
+    quoteMint: PublicKey,
+    buyNow?: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
@@ -192,6 +196,14 @@ export class createInstruction {
         isWritable: false,
       },
     ];
+
+    if (buyNow) {
+      keys.push({
+        pubkey: buyNow,
+        isSigner: false,
+        isWritable: true,
+      });
+    }
 
     return new TransactionInstruction({
       keys,
@@ -370,6 +382,7 @@ export class resellInstruction {
   name: string;
   minimumPrice: BN;
   endAuctionAt: BN;
+  maxPrice?: BN;
 
   static schema: Schema = new Map([
     [
@@ -381,16 +394,23 @@ export class resellInstruction {
           ['name', 'string'],
           ['minimumPrice', 'u64'],
           ['endAuctionAt', 'u64'],
+          ['maxPrice', { kind: 'option', type: 'u64' }],
         ],
       },
     ],
   ]);
 
-  constructor(obj: { name: string; minimumPrice: BN; endAuctionAt: number }) {
+  constructor(obj: {
+    name: string;
+    minimumPrice: BN;
+    endAuctionAt: number;
+    maxPrice?: BN;
+  }) {
     this.tag = 4;
     this.name = obj.name;
     this.minimumPrice = obj.minimumPrice;
     this.endAuctionAt = new BN(obj.endAuctionAt);
+    this.maxPrice = obj.maxPrice;
   }
 
   serialize(): Uint8Array {
@@ -413,7 +433,8 @@ export class resellInstruction {
     stateAccount: PublicKey,
     resellingStateAccount: PublicKey,
     destinationTokenAccount: PublicKey,
-    feePayer: PublicKey
+    feePayer: PublicKey,
+    buyNow?: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
@@ -493,6 +514,14 @@ export class resellInstruction {
         isWritable: true,
       },
     ];
+
+    if (buyNow) {
+      keys.push({
+        pubkey: buyNow,
+        isSigner: false,
+        isWritable: true,
+      });
+    }
 
     return new TransactionInstruction({
       keys,
