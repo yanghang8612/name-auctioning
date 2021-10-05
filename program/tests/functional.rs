@@ -3,7 +3,7 @@ use std::str::FromStr;
 use borsh::BorshSerialize;
 use name_auctioning::{
     instructions::{create, create_reverse, init, resell},
-    processor::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, ROOT_DOMAIN_ACCOUNT, TOKEN_MINT},
+    processor::{AUCTION_PROGRAM_ID, BONFIDA_USDC_VAULT, ROOT_DOMAIN_ACCOUNT, TOKEN_MINT},
 };
 use solana_program::{
     hash::hashv, instruction::Instruction, program_option::COption, program_pack::Pack,
@@ -82,7 +82,7 @@ async fn test() {
     .pack_into_slice(&mut vault_data);
 
     program_test.add_account(
-        Pubkey::from_str(BONFIDA_VAULT).unwrap(),
+        Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(),
         Account {
             lamports: 1_000_000,
             data: vault_data,
@@ -290,7 +290,7 @@ async fn test_resell() {
     .pack_into_slice(&mut vault_data);
 
     program_test.add_account(
-        Pubkey::from_str(BONFIDA_VAULT).unwrap(),
+        Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(),
         Account {
             lamports: 1_000_000,
             data: vault_data,
@@ -429,7 +429,7 @@ async fn test_resell() {
         derived_state_key,
         ctx.payer.pubkey(),
         derived_reselling_state_key,
-        Pubkey::from_str(BONFIDA_VAULT).unwrap(),
+        Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(),
         name.to_owned(),
         10,
         10,

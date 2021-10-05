@@ -26,13 +26,14 @@ pub const END_AUCTION_GAP: u64 = 600;
 pub const TOKEN_MINT: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"; // USDC mint
 pub const MINIMUM_PRICE: u64 = 20_000_000;
 pub const AUCTION_PROGRAM_ID: &str = "AVWV7vdWbLqXiLKFaP19GhYurhwxaLp2qRBSjT5tR5vT";
-pub const BONFIDA_VAULT: &str = "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7";
+pub const BONFIDA_USDC_VAULT: &str = "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7";
 pub const AUCTION_MAX_LENGTH: u64 = 604800; // One week in seconds
 pub const ADMIN: &str = "BD4vT1aztHmuEPZh7GgvpeFskgyhi9AtPwtxzYEh5J91";
 pub const FEES: &[u64] = &[500, 300, 200, 150, 100]; // Fees for low leverage orders for tiers [0, 1 ,2]
 pub const FEE_TIERS: [u64; 4] = [10_000_000, 100_000_000, 500_000_000, 1_000_000_000]; // Amount of FIDA tokens (with precision) that the discount account needs to hold
 pub const FIDA_MINT: &str = "EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp";
 pub const ROOT_DOMAIN_ACCOUNT: &str = "58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx";
+pub const BONFIDA_SOL_VAULT: &str = "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi";
 
 // Fees taken for the reselling of domain names
 // | Tier | Percentage of payout    | Requirements   |

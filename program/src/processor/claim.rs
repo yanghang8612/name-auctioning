@@ -16,7 +16,9 @@ use spl_auction::processor::AuctionData;
 use spl_name_service::state::get_seeds_and_key;
 use spl_token::state::Account;
 
-use super::{AUCTION_PROGRAM_ID, BONFIDA_VAULT, FEES, FEE_TIERS, FIDA_MINT};
+use super::{
+    AUCTION_PROGRAM_ID, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, FEES, FEE_TIERS, FIDA_MINT,
+};
 use crate::{
     error::NameAuctionError,
     state::{NameAuction, ResellingAuction},
@@ -43,6 +45,8 @@ struct Accounts<'a, 'b: 'a> {
     bidder_pot_token: &'a AccountInfo<'b>,
     bonfida_vault: &'a AccountInfo<'b>,
     fida_discount_opt: Option<&'a AccountInfo<'b>>,
+    buy_now: Option<&'a AccountInfo<'b>>,
+    bonfida_sol_vault: Option<&'a AccountInfo<'b>>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -70,6 +74,8 @@ fn parse_accounts<'a, 'b: 'a>(
         bidder_pot_token: next_account_info(accounts_iter)?,
         bonfida_vault: next_account_info(accounts_iter)?,
         fida_discount_opt: next_account_info(accounts_iter).ok(),
+        buy_now: next_account_info(accounts_iter).ok(),
+        bonfida_sol_vault: next_account_info(accounts_iter).ok(),
     };
     let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
@@ -82,10 +88,19 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_owner(a.central_state, &program_id).unwrap();
     check_account_owner(a.state, &program_id).unwrap();
     // check_signer(a.bidder_wallet).unwrap();
-    if a.bonfida_vault.key != &Pubkey::from_str(BONFIDA_VAULT).unwrap() {
+    if a.bonfida_vault.key != &Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap() {
         msg!("Wrong Bonfida vault address");
         return Err(ProgramError::InvalidArgument);
     };
+    if a.bonfida_sol_vault.is_some()
+        && *a.bonfida_sol_vault.unwrap().key != Pubkey::from_str(BONFIDA_SOL_VAULT).unwrap()
+    {
+        msg!("Wrong Bonfida SOL vault address");
+        return Err(ProgramError::InvalidArgument);
+    }
+    if let Some(buy_now_account) = a.buy_now {
+        check_account_owner(buy_now_account, spl_auction_id).unwrap();
+    }
 
     Ok(a)
 }
@@ -133,7 +148,7 @@ pub fn process_claim(
         check_signer(accounts.bidder_wallet).unwrap();
         check_account_key(
             accounts.destination_token,
-            &Pubkey::from_str(BONFIDA_VAULT).unwrap(),
+            &Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(),
         )
         .unwrap();
         Cpi::create_name_account(
@@ -244,6 +259,8 @@ pub fn process_claim(
         accounts.quote_mint,
         accounts.state,
         accounts.bonfida_vault,
+        accounts.buy_now,
+        accounts.bonfida_sol_vault,
         *accounts.name.key,
         signer_seeds,
         fee_percentage,

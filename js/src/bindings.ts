@@ -47,6 +47,10 @@ export type PrimedTransaction = [Account[], TransactionInstruction[]];
 
 // const MARKET_STATE_SPACE = 5000; // Size enough for more than 40 active leverage types with 10 memory pages each.
 
+export const BONFIDA_SOL_VAULT = new PublicKey(
+  'GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi'
+);
+
 export async function initCentralState(
   feePayer: PublicKey
 ): Promise<PrimedTransaction> {
@@ -137,7 +141,9 @@ export async function reclaimName(
   ownerWallet: PublicKey,
   tldAuthority: PublicKey,
   isResell: boolean,
-  destinationTokenAccount: PublicKey
+  destinationTokenAccount: PublicKey,
+  buyNow?: PublicKey,
+  bonfidaSolVault?: PublicKey
 ): Promise<PrimedTransaction> {
   return await claimName(
     connection,
@@ -153,7 +159,9 @@ export async function reclaimName(
     tldAuthority,
     isResell,
     undefined,
-    destinationTokenAccount
+    destinationTokenAccount,
+    buyNow,
+    bonfidaSolVault
   );
 }
 
@@ -171,7 +179,9 @@ export async function claimName(
   tldAuthority: PublicKey,
   isResell: boolean,
   discountAccount?: PublicKey,
-  destinationTokenAccount?: PublicKey
+  destinationTokenAccount?: PublicKey,
+  buyNow?: PublicKey,
+  bonfidaSolVault?: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -216,7 +226,9 @@ export async function claimName(
     bidderPot,
     bidderPotTokenAccount,
     isResell,
-    discountAccount
+    discountAccount,
+    buyNow,
+    bonfidaSolVault
   );
 
   let instructions = [claimNameInstruction];

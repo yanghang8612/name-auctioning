@@ -7,7 +7,7 @@ use solana_program::{
     system_program, sysvar,
 };
 
-use crate::processor::BONFIDA_VAULT;
+use crate::processor::BONFIDA_USDC_VAULT;
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
 pub enum ProgramInstruction {
@@ -223,6 +223,8 @@ pub fn claim(
     space: u32,
     hashed_name: [u8; 32],
     discount_account_opt: Option<Pubkey>,
+    buy_now: Option<Pubkey>,
+    bonfida_sol_vault: Option<Pubkey>,
 ) -> Instruction {
     let data = ProgramInstruction::Claim {
         hashed_name,
@@ -248,10 +250,16 @@ pub fn claim(
         AccountMeta::new_readonly(bidder_wallet, true),
         AccountMeta::new(bidder_pot, false),
         AccountMeta::new(bidder_pot_token, false),
-        AccountMeta::new(Pubkey::from_str(BONFIDA_VAULT).unwrap(), false),
+        AccountMeta::new(Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(), false),
     ];
     if let Some(discount_account) = discount_account_opt {
         accounts.push(AccountMeta::new_readonly(discount_account, false));
+    }
+    if let Some(buy_now_account) = buy_now {
+        AccountMeta::new(buy_now_account, false);
+    }
+    if let Some(bonfida_sol_vault_account) = bonfida_sol_vault {
+        AccountMeta::new(bonfida_sol_vault_account, false);
     }
 
     Instruction {
