@@ -45,12 +45,8 @@ struct Accounts<'a, 'b: 'a> {
     bidder_pot_token: &'a AccountInfo<'b>,
     bonfida_vault: &'a AccountInfo<'b>,
     fida_discount: &'a AccountInfo<'b>,
-    buy_now: Option<BuyNowAccounts<'a, 'b>>,
-}
-#[derive(Clone, Copy)]
-pub struct BuyNowAccounts<'a, 'b: 'a> {
-    pub buy_now: &'a AccountInfo<'b>,
-    pub bonfida_sol_vault: &'a AccountInfo<'b>,
+    buy_now: &'a AccountInfo<'b>,
+    bonfida_sol_vault: &'a AccountInfo<'b>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -78,14 +74,8 @@ fn parse_accounts<'a, 'b: 'a>(
         bidder_pot_token: next_account_info(accounts_iter)?,
         bonfida_vault: next_account_info(accounts_iter)?,
         fida_discount: next_account_info(accounts_iter)?,
-        buy_now: next_account_info(accounts_iter)
-            .and_then(|a| {
-                Ok(BuyNowAccounts {
-                    buy_now: a,
-                    bonfida_sol_vault: next_account_info(accounts_iter)?,
-                })
-            })
-            .ok(),
+        buy_now: next_account_info(accounts_iter)?,
+        bonfida_sol_vault: next_account_info(accounts_iter)?,
     };
     let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
@@ -103,14 +93,11 @@ fn parse_accounts<'a, 'b: 'a>(
         return Err(ProgramError::InvalidArgument);
     };
 
-    if let Some(buy_now_accounts) = a.buy_now {
-        check_account_key(
-            buy_now_accounts.bonfida_sol_vault,
-            &Pubkey::from_str(BONFIDA_SOL_VAULT).unwrap(),
-        )
-        .unwrap();
-        check_account_owner(buy_now_accounts.buy_now, spl_auction_id).unwrap();
-    }
+    check_account_key(
+        a.bonfida_sol_vault,
+        &Pubkey::from_str(BONFIDA_SOL_VAULT).unwrap(),
+    )
+    .unwrap();
 
     Ok(a)
 }
@@ -270,8 +257,8 @@ pub fn process_claim(
         accounts.quote_mint,
         accounts.state,
         accounts.bonfida_vault,
-        accounts.buy_now.map(|b| b.buy_now),
-        accounts.buy_now.map(|b| b.bonfida_sol_vault),
+        accounts.buy_now,
+        accounts.buy_now,
         *accounts.name.key,
         signer_seeds,
         fee_percentage,
