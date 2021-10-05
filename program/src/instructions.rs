@@ -41,7 +41,6 @@ pub enum ProgramInstruction {
     ///   13. `[writable]` The quote mint account
     Create {
         name: String,
-        max_price: Option<u64>,
     },
     /// Executes an arbitrary program instruction, signing as the tokenized authority
     ///
@@ -149,11 +148,8 @@ pub fn create(
     fee_payer: Pubkey,
     quote_mint: Pubkey,
     name: String,
-    max_price: Option<u64>,
 ) -> Instruction {
-    let data = ProgramInstruction::Create { name, max_price }
-        .try_to_vec()
-        .unwrap();
+    let data = ProgramInstruction::Create { name }.try_to_vec().unwrap();
     let accounts = vec![
         AccountMeta::new_readonly(sysvar::rent::id(), false),
         AccountMeta::new_readonly(sysvar::clock::id(), false),

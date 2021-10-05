@@ -64,9 +64,9 @@ impl Processor {
                 msg!("Instruction: Init");
                 process_init(program_id, accounts, state_nonce)?;
             }
-            ProgramInstruction::Create { name, max_price } => {
+            ProgramInstruction::Create { name } => {
                 msg!("Instruction: Create");
-                process_create(program_id, accounts, name, max_price)?;
+                process_create(program_id, accounts, name)?;
             }
             ProgramInstruction::Claim {
                 hashed_name,
