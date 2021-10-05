@@ -63,9 +63,9 @@ impl Processor {
                 msg!("Instruction: Init");
                 process_init(program_id, accounts, state_nonce)?;
             }
-            ProgramInstruction::Create { name } => {
+            ProgramInstruction::Create { name, max_price } => {
                 msg!("Instruction: Create");
-                process_create(program_id, accounts, name)?;
+                process_create(program_id, accounts, name, max_price)?;
             }
             ProgramInstruction::Claim {
                 hashed_name,
@@ -89,9 +89,17 @@ impl Processor {
                 name,
                 minimum_price,
                 end_auction_at,
+                max_price,
             } => {
                 msg!("Instruction: Resell");
-                process_resell(program_id, accounts, name, minimum_price, end_auction_at)?;
+                process_resell(
+                    program_id,
+                    accounts,
+                    name,
+                    minimum_price,
+                    end_auction_at,
+                    max_price,
+                )?;
             }
             ProgramInstruction::CreateReverse { name } => {
                 msg!("Instruction: Create Reverse");

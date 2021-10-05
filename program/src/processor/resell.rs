@@ -98,6 +98,7 @@ pub fn process_resell(
     name: String,
     minimum_price: u64,
     en_auction_at: u64,
+    max_price: Option<u64>,
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
 
@@ -284,6 +285,7 @@ pub fn process_resell(
         *accounts.name.key,
         minimum_price,
         state_signer_seeds,
+        max_price,
     )?;
 
     msg!("Transferring the domain ownership to the auction program");

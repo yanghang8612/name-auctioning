@@ -92,6 +92,7 @@ pub fn process_create(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
     name: String,
+    max_price: Option<u64>,
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
 
@@ -235,6 +236,7 @@ pub fn process_create(
         *accounts.name.key,
         MINIMUM_PRICE,
         signer_seeds,
+        max_price,
     )?;
 
     solana_program::log::sol_log_compute_units();

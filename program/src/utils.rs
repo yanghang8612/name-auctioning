@@ -68,6 +68,7 @@ impl Cpi {
         resource: Pubkey,
         minimum_price: u64,
         signer_seeds: &[&[u8]],
+        max_price: Option<u64>,
     ) -> ProgramResult {
         let create_auction_instruction = create_auction_instruction(
             *auction_program.key,
@@ -80,6 +81,7 @@ impl Cpi {
                 token_mint: Pubkey::from_str(TOKEN_MINT).unwrap(),
                 resource,
                 price_floor: PriceFloor::MinimumPrice([minimum_price, 0, 0, 0]),
+                max_price,
             },
         );
 
