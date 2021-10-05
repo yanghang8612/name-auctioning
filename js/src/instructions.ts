@@ -253,9 +253,9 @@ export class claimInstruction {
     bidderPot: PublicKey,
     bidderPotTokenAccount: PublicKey,
     isResell: boolean,
-    discountAccount?: PublicKey,
-    buyNow?: PublicKey,
-    bonfidaSolVault?: PublicKey
+    discountAccount: PublicKey,
+    buyNow: PublicKey,
+    bonfidaSolVault: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
@@ -349,31 +349,22 @@ export class claimInstruction {
         isSigner: false,
         isWritable: true,
       },
-    ];
-
-    if (discountAccount) {
-      keys.push({
+      {
         pubkey: discountAccount,
         isSigner: false,
         isWritable: false,
-      });
-    }
-
-    if (buyNow) {
-      keys.push({
+      },
+      {
         pubkey: buyNow,
         isSigner: false,
         isWritable: true,
-      });
-    }
-
-    if (bonfidaSolVault) {
-      keys.push({
+      },
+      {
         pubkey: bonfidaSolVault,
         isSigner: false,
         isWritable: true,
-      });
-    }
+      },
+    ];
 
     return new TransactionInstruction({
       keys,

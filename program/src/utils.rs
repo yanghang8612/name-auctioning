@@ -133,7 +133,7 @@ impl Cpi {
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn claim_auction<'a, 'b: 'a>(
+    pub fn claim_auction<'a>(
         spl_token_program: &AccountInfo<'a>,
         auction_program: &AccountInfo<'a>,
         clock_sysvar_account: &AccountInfo<'a>,
