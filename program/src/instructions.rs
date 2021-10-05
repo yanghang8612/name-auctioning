@@ -39,6 +39,7 @@ pub enum ProgramInstruction {
     ///   11. `[writable]` The state account
     ///   12. `[writable, signer]` The fee payer account
     ///   13. `[writable]` The quote mint account
+    ///   14. `[writable]` The buy now account
     Create {
         name: String,
     },
@@ -64,7 +65,9 @@ pub enum ProgramInstruction {
     ///   16. `[writable]` The bidder pot account
     ///   17. `[writable]` The bidder pot token account
     ///   18. `[]` The bonfida vault account
-    ///   19. `[]` (Optional) The fida discount account
+    ///   19. `[]` The fida discount account
+    ///   20. `[writable]` The buy now account
+    ///   21. `[writable]` The Bonfida SOL vault account
     Claim {
         hashed_name: [u8; 32],
         lamports: u64,
@@ -90,6 +93,7 @@ pub enum ProgramInstruction {
     ///   13. `[writable]` The reselling state account
     ///   14. `[writable]` The destination token account
     ///   15. `[writable, signer]` The fee payer account
+    ///   16. `[writable]` The buy now account
     Resell {
         name: String,
         minimum_price: u64,
@@ -218,9 +222,9 @@ pub fn claim(
     lamports: u64,
     space: u32,
     hashed_name: [u8; 32],
-    discount_account_opt: Option<Pubkey>,
-    buy_now: Option<Pubkey>,
-    bonfida_sol_vault: Option<Pubkey>,
+    discount_account: Pubkey,
+    buy_now: Pubkey,
+    bonfida_sol_vault: Pubkey,
 ) -> Instruction {
     let data = ProgramInstruction::Claim {
         hashed_name,
@@ -229,7 +233,7 @@ pub fn claim(
     }
     .try_to_vec()
     .unwrap();
-    let mut accounts = vec![
+    let accounts = vec![
         AccountMeta::new_readonly(sysvar::clock::id(), false),
         AccountMeta::new_readonly(spl_token::id(), false),
         AccountMeta::new_readonly(spl_name_service::id(), false),
@@ -247,16 +251,10 @@ pub fn claim(
         AccountMeta::new(bidder_pot, false),
         AccountMeta::new(bidder_pot_token, false),
         AccountMeta::new(Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(), false),
+        AccountMeta::new_readonly(discount_account, false),
+        AccountMeta::new(buy_now, false),
+        AccountMeta::new(bonfida_sol_vault, false),
     ];
-    if let Some(discount_account) = discount_account_opt {
-        accounts.push(AccountMeta::new_readonly(discount_account, false));
-    }
-    if let Some(buy_now_account) = buy_now {
-        AccountMeta::new(buy_now_account, false);
-    }
-    if let Some(bonfida_sol_vault_account) = bonfida_sol_vault {
-        AccountMeta::new(bonfida_sol_vault_account, false);
-    }
 
     Instruction {
         program_id,
