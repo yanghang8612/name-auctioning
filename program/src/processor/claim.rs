@@ -44,9 +44,13 @@ struct Accounts<'a, 'b: 'a> {
     bidder_pot: &'a AccountInfo<'b>,
     bidder_pot_token: &'a AccountInfo<'b>,
     bonfida_vault: &'a AccountInfo<'b>,
-    fida_discount_opt: Option<&'a AccountInfo<'b>>,
-    buy_now: Option<&'a AccountInfo<'b>>,
-    bonfida_sol_vault: Option<&'a AccountInfo<'b>>,
+    fida_discount: &'a AccountInfo<'b>,
+    buy_now: Option<BuyNowAccounts<'a, 'b>>,
+}
+
+pub struct BuyNowAccounts<'a, 'b: 'a> {
+    pub buy_now: &'a AccountInfo<'b>,
+    pub bonfida_sol_vault: &'a AccountInfo<'b>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -73,9 +77,15 @@ fn parse_accounts<'a, 'b: 'a>(
         bidder_pot: next_account_info(accounts_iter)?,
         bidder_pot_token: next_account_info(accounts_iter)?,
         bonfida_vault: next_account_info(accounts_iter)?,
-        fida_discount_opt: next_account_info(accounts_iter).ok(),
-        buy_now: next_account_info(accounts_iter).ok(),
-        bonfida_sol_vault: next_account_info(accounts_iter).ok(),
+        fida_discount: next_account_info(accounts_iter)?,
+        buy_now: next_account_info(accounts_iter)
+            .and_then(|a| {
+                Ok(BuyNowAccounts {
+                    buy_now: a,
+                    bonfida_sol_vault: next_account_info(accounts_iter)?,
+                })
+            })
+            .ok(),
     };
     let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
@@ -92,14 +102,14 @@ fn parse_accounts<'a, 'b: 'a>(
         msg!("Wrong Bonfida vault address");
         return Err(ProgramError::InvalidArgument);
     };
-    if a.bonfida_sol_vault.is_some()
-        && *a.bonfida_sol_vault.unwrap().key != Pubkey::from_str(BONFIDA_SOL_VAULT).unwrap()
-    {
-        msg!("Wrong Bonfida SOL vault address");
-        return Err(ProgramError::InvalidArgument);
-    }
-    if let Some(buy_now_account) = a.buy_now {
-        check_account_owner(buy_now_account, spl_auction_id).unwrap();
+
+    if let Some(buy_now_accounts) = a.buy_now {
+        check_account_key(
+            buy_now_accounts.bonfida_sol_vault,
+            &Pubkey::from_str(BONFIDA_SOL_VAULT).unwrap(),
+        )
+        .unwrap();
+        check_account_owner(buy_now_accounts.buy_now, spl_auction_id).unwrap();
     }
 
     Ok(a)
@@ -225,8 +235,8 @@ pub fn process_claim(
 
         // Calculate fees
         let mut fee_tier = 0;
-        if let Some(fida_discount) = accounts.fida_discount_opt {
-            let discount_data = Account::unpack(&fida_discount.data.borrow())?;
+
+        if let Some(discount_data) = Account::unpack(&accounts.fida_discount.data.borrow()).ok() {
             let destination_data = Account::unpack(&accounts.destination_token.data.borrow())?;
             if discount_data.owner != destination_data.owner {
                 msg!("Fida discount owner does not match destination owner.");
@@ -244,6 +254,7 @@ pub fn process_claim(
                 None => FEE_TIERS.len(),
             };
         }
+
         fee_percentage = FEES[fee_tier];
     }
 
@@ -260,7 +271,6 @@ pub fn process_claim(
         accounts.state,
         accounts.bonfida_vault,
         accounts.buy_now,
-        accounts.bonfida_sol_vault,
         *accounts.name.key,
         signer_seeds,
         fee_percentage,

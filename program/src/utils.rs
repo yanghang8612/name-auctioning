@@ -19,7 +19,7 @@ use spl_auction::{
 use spl_name_service::{instruction::NameRegistryInstruction, state::NameRecordHeader};
 
 use crate::{
-    processor::{END_AUCTION_GAP, TOKEN_MINT},
+    processor::{claim::BuyNowAccounts, END_AUCTION_GAP, TOKEN_MINT},
     state::{NameAuction, ReverseLookup},
 };
 
@@ -133,7 +133,7 @@ impl Cpi {
     }
 
     #[allow(clippy::too_many_arguments)]
-    pub fn claim_auction<'a>(
+    pub fn claim_auction<'a, 'b: 'a>(
         spl_token_program: &AccountInfo<'a>,
         auction_program: &AccountInfo<'a>,
         clock_sysvar_account: &AccountInfo<'a>,
@@ -145,20 +145,19 @@ impl Cpi {
         quote_mint: &AccountInfo<'a>,
         authority: &AccountInfo<'a>,
         bonfida_vault: &AccountInfo<'a>,
-        buy_now: Option<&AccountInfo<'a>>,
-        bonfida_sol_vault: Option<&AccountInfo<'a>>,
+        buy_now: Option<BuyNowAccounts<'a, 'b>>,
         resource: Pubkey,
         signer_seeds: &[&[u8]],
         fee_percentage: u64,
     ) -> ProgramResult {
-        let buy_now_key = match buy_now {
-            Some(acc) => Some(*acc.key),
-            None => None,
+        let (buy_now_key, bonfida_sol_vault_key) = match buy_now {
+            Some(accounts) => (
+                Some(*accounts.buy_now.key),
+                Some(*accounts.bonfida_sol_vault.key),
+            ),
+            None => (None, None),
         };
-        let bonfida_sol_vault_key = match bonfida_sol_vault {
-            Some(acc) => Some(*acc.key),
-            None => None,
-        };
+
         let claim_auction_instruction = claim_bid_instruction(
             *auction_program.key,
             *destination_token_account.key,
