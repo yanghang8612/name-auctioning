@@ -85,7 +85,6 @@ export class initInstruction {
 export class createInstruction {
   tag: number;
   name: string;
-  maxPrice?: BN;
 
   static schema: Schema = new Map([
     [
@@ -95,16 +94,14 @@ export class createInstruction {
         fields: [
           ['tag', 'u8'],
           ['name', 'string'],
-          ['maxPrice', { kind: 'option', type: 'u64' }],
         ],
       },
     ],
   ]);
 
-  constructor(obj: { name: string; maxPrice?: BN }) {
+  constructor(obj: { name: string }) {
     this.tag = 1;
     this.name = obj.name;
-    this.maxPrice = obj.maxPrice;
   }
 
   serialize(): Uint8Array {
