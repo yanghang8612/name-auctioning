@@ -122,8 +122,7 @@ export class createInstruction {
     centralStateAccount: PublicKey,
     stateAccount: PublicKey,
     feePayer: PublicKey,
-    quoteMint: PublicKey,
-    buyNow?: PublicKey
+    quoteMint: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
@@ -193,14 +192,6 @@ export class createInstruction {
         isWritable: false,
       },
     ];
-
-    if (buyNow) {
-      keys.push({
-        pubkey: buyNow,
-        isSigner: false,
-        isWritable: true,
-      });
-    }
 
     return new TransactionInstruction({
       keys,
