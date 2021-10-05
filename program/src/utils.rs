@@ -145,19 +145,12 @@ impl Cpi {
         quote_mint: &AccountInfo<'a>,
         authority: &AccountInfo<'a>,
         bonfida_vault: &AccountInfo<'a>,
-        buy_now: Option<BuyNowAccounts<'a, 'b>>,
+        buy_now: Option<&AccountInfo<'a>>,
+        bonfida_sol_vault: Option<&AccountInfo<'a>>,
         resource: Pubkey,
         signer_seeds: &[&[u8]],
         fee_percentage: u64,
     ) -> ProgramResult {
-        let (buy_now_key, bonfida_sol_vault_key) = match buy_now {
-            Some(accounts) => (
-                Some(*accounts.buy_now.key),
-                Some(*accounts.bonfida_sol_vault.key),
-            ),
-            None => (None, None),
-        };
-
         let claim_auction_instruction = claim_bid_instruction(
             *auction_program.key,
             *destination_token_account.key,
@@ -166,8 +159,8 @@ impl Cpi {
             *winner_pot_token_account.key,
             *quote_mint.key,
             *bonfida_vault.key,
-            buy_now_key,
-            bonfida_sol_vault_key,
+            buy_now.map(|a| *a.key),
+            bonfida_sol_vault.map(|a| *a.key),
             ClaimBidArgs {
                 resource,
                 fee_percentage,
