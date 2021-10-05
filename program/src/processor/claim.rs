@@ -258,7 +258,7 @@ pub fn process_claim(
         accounts.state,
         accounts.bonfida_vault,
         accounts.buy_now,
-        accounts.buy_now,
+        accounts.bonfida_sol_vault,
         *accounts.name.key,
         signer_seeds,
         fee_percentage,
