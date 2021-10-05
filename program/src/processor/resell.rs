@@ -43,6 +43,7 @@ struct Accounts<'a, 'b: 'a> {
     auction_program: &'a AccountInfo<'b>,
     token_destination_account: &'a AccountInfo<'b>,
     fee_payer: &'a AccountInfo<'b>,
+    buy_now: Option<&'a AccountInfo<'b>>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -66,6 +67,7 @@ fn parse_accounts<'a, 'b: 'a>(
         reselling_state: next_account_info(accounts_iter)?,
         token_destination_account: next_account_info(accounts_iter)?,
         fee_payer: next_account_info(accounts_iter)?,
+        buy_now: next_account_info(accounts_iter).ok(),
     };
 
     check_account_key(a.rent_sysvar, &sysvar::rent::id()).unwrap();
@@ -282,6 +284,7 @@ pub fn process_resell(
         accounts.fee_payer,
         Some(en_auction_at),
         accounts.state,
+        accounts.buy_now,
         *accounts.name.key,
         minimum_price,
         state_signer_seeds,

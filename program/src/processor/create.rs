@@ -40,6 +40,7 @@ struct Accounts<'a, 'b: 'a> {
     auction_program: &'a AccountInfo<'b>,
     fee_payer: &'a AccountInfo<'b>,
     quote_mint: &'a AccountInfo<'b>,
+    buy_now: Option<&'a AccountInfo<'b>>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -61,6 +62,7 @@ fn parse_accounts<'a, 'b: 'a>(
         state: next_account_info(accounts_iter)?,
         fee_payer: next_account_info(accounts_iter)?,
         quote_mint: next_account_info(accounts_iter)?,
+        buy_now: next_account_info(accounts_iter).ok(),
     };
 
     check_account_key(a.rent_sysvar, &sysvar::rent::id()).unwrap();
@@ -233,6 +235,7 @@ pub fn process_create(
         accounts.fee_payer,
         end_auction_at,
         accounts.state,
+        accounts.buy_now,
         *accounts.name.key,
         MINIMUM_PRICE,
         signer_seeds,

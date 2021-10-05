@@ -65,15 +65,22 @@ impl Cpi {
         fee_payer: &AccountInfo<'a>,
         end_auction_at: Option<u64>,
         authority: &AccountInfo<'a>,
+        buy_now_account: Option<&AccountInfo<'a>>,
         resource: Pubkey,
         minimum_price: u64,
         signer_seeds: &[&[u8]],
         max_price: Option<u64>,
     ) -> ProgramResult {
+        let buy_now_pubkey: Option<Pubkey> = match buy_now_account {
+            Some(account) => Some(*account.key),
+            None => None,
+        };
+
         let create_auction_instruction = create_auction_instruction(
             *auction_program.key,
             *fee_payer.key,
             *authority.key,
+            buy_now_pubkey,
             CreateAuctionArgs {
                 winners: WinnerLimit::Capped(1),
                 end_auction_at: end_auction_at.map(|n| n as i64),
