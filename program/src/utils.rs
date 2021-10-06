@@ -92,18 +92,20 @@ impl Cpi {
             },
         );
 
-        invoke_signed(
-            &create_auction_instruction,
-            &[
-                auction_program.clone(),
-                fee_payer.clone(),
-                auction_account.clone(),
-                rent_sysvar_account.clone(),
-                system_account.clone(),
-                authority.clone(),
-            ],
-            &[signer_seeds],
-        )
+        let mut account_infos = vec![
+            auction_program.clone(),
+            fee_payer.clone(),
+            auction_account.clone(),
+            rent_sysvar_account.clone(),
+            system_account.clone(),
+            authority.clone(),
+        ];
+
+        if let Some(a) = buy_now_account {
+            account_infos.push(a.clone())
+        }
+
+        invoke_signed(&create_auction_instruction, &account_infos, &[signer_seeds])
     }
 
     pub fn start_auction<'a>(
@@ -181,6 +183,7 @@ impl Cpi {
                 clock_sysvar_account.clone(),
                 spl_token_program.clone(),
                 bonfida_vault.clone(),
+                buy_now.clone(),
             ],
             &[signer_seeds],
         )
