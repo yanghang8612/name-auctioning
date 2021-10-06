@@ -184,6 +184,7 @@ impl Cpi {
                 spl_token_program.clone(),
                 bonfida_vault.clone(),
                 buy_now.clone(),
+                bonfida_sol_vault.clone(),
             ],
             &[signer_seeds],
         )
