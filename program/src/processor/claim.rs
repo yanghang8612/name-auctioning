@@ -223,7 +223,7 @@ pub fn process_claim(
         // Calculate fees
         let mut fee_tier = 0;
 
-        if let Some(discount_data) = Account::unpack(&accounts.fida_discount.data.borrow()).ok() {
+        if let Ok(discount_data) = Account::unpack(&accounts.fida_discount.data.borrow()) {
             let destination_data = Account::unpack(&accounts.destination_token.data.borrow())?;
             if discount_data.owner != destination_data.owner {
                 msg!("Fida discount owner does not match destination owner.");
