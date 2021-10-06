@@ -142,8 +142,9 @@ export async function reclaimName(
   tldAuthority: PublicKey,
   isResell: boolean,
   destinationTokenAccount: PublicKey,
-  buyNow?: PublicKey,
-  bonfidaSolVault?: PublicKey
+  buyNow: PublicKey,
+  bonfidaSolVault: PublicKey,
+  discountAccount: PublicKey
 ): Promise<PrimedTransaction> {
   return await claimName(
     connection,
@@ -158,10 +159,10 @@ export async function reclaimName(
     0,
     tldAuthority,
     isResell,
-    undefined,
-    destinationTokenAccount,
+    discountAccount,
     buyNow,
-    bonfidaSolVault
+    bonfidaSolVault,
+    destinationTokenAccount
   );
 }
 
@@ -178,10 +179,10 @@ export async function claimName(
   space: number,
   tldAuthority: PublicKey,
   isResell: boolean,
-  discountAccount?: PublicKey,
-  destinationTokenAccount?: PublicKey,
-  buyNow?: PublicKey,
-  bonfidaSolVault?: PublicKey
+  discountAccount: PublicKey,
+  buyNow: PublicKey,
+  bonfidaSolVault: PublicKey,
+  destinationTokenAccount?: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -244,7 +245,8 @@ export async function resellDomain(
   destinationTokenAccount: PublicKey,
   tldAuthority: PublicKey,
   minimumPrice: BN, // with precision
-  endAuctionAt: number // Unix timestamp in s
+  endAuctionAt: number, // Unix timestamp in s,
+  maxPrice?: BN // price for buy now
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -282,6 +284,7 @@ export async function resellDomain(
     name,
     minimumPrice,
     endAuctionAt,
+    maxPrice,
   }).getInstruction(
     PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
