@@ -9,6 +9,7 @@ import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 import bs58 from 'bs58';
 import { AUCTION_PROGRAM_ID, PROGRAM_ID } from './bindings';
+import { getMultipleAccountInfo } from './utils';
 
 export async function findActiveAuctionsForUser(
   connection: Connection,
@@ -123,6 +124,38 @@ export async function performReverseLookup(
   return name.data.slice(4, 4 + nameLength).toString();
 }
 
+export async function performReverseLookupBatch(
+  connection: Connection,
+  nameAccounts: PublicKey[]
+): Promise<(string | undefined)[]> {
+  const [centralState] = await PublicKey.findProgramAddress(
+    [PROGRAM_ID.toBuffer()],
+    PROGRAM_ID
+  );
+  let reverseLookupAccounts: PublicKey[] = [];
+  for (let nameAccount of nameAccounts) {
+    const hashedReverseLookup = await getHashedName(nameAccount.toBase58());
+    const reverseLookupAccount = await getNameAccountKey(
+      hashedReverseLookup,
+      centralState
+    );
+    reverseLookupAccounts.push(reverseLookupAccount);
+  }
+
+  let names = await NameRegistryState.retrieveBatch(
+    connection,
+    reverseLookupAccounts
+  );
+
+  return names.map((name) => {
+    if (name === undefined || name.data === undefined) {
+      return undefined;
+    }
+    let nameLength = new BN(name.data.slice(0, 4), 'le').toNumber();
+    return name.data.slice(4, 4 + nameLength).toString();
+  });
+}
+
 export async function getDestinationTokenAccount(
   connection: Connection,
   nameAccount: PublicKey
@@ -139,3 +172,23 @@ export async function getDestinationTokenAccount(
   }
   return new PublicKey(destinationTokenData);
 }
+
+export const getDestinationTokenAccountBatch = async (
+  connection: Connection,
+  nameAccounts: PublicKey[]
+) => {
+  let resellingStateAccounts: PublicKey[] = [];
+  for (let nameAccount of nameAccounts) {
+    let [resellingStateAccount] = await PublicKey.findProgramAddress(
+      [nameAccount.toBytes(), Uint8Array.from([1, 1])],
+      PROGRAM_ID
+    );
+    resellingStateAccounts.push(resellingStateAccount);
+  }
+  const destinationTokenData = (
+    await getMultipleAccountInfo(connection, resellingStateAccounts)
+  ).map((e) => e?.data);
+
+  // @ts-ignore
+  return destinationTokenData.map((e) => (e ? new PublicKey(e) : undefined));
+};
