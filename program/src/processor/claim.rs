@@ -17,7 +17,7 @@ use spl_name_service::state::get_seeds_and_key;
 use spl_token::state::Account;
 
 use super::{
-    AUCTION_PROGRAM_ID, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, FEES, FEE_TIERS, FIDA_MINT,
+    AUCTION_PROGRAM_ID, BONFIDA_SOL_VAULT, BONFIDA_FIDA_VAULT, FEES, FEE_TIERS, FIDA_MINT,
 };
 use crate::{
     error::NameAuctionError,
@@ -88,7 +88,7 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_owner(a.central_state, &program_id).unwrap();
     check_account_owner(a.state, &program_id).unwrap();
     // check_signer(a.bidder_wallet).unwrap();
-    if a.bonfida_vault.key != &Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap() {
+    if a.bonfida_vault.key != &Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap() {
         msg!("Wrong Bonfida vault address");
         return Err(ProgramError::InvalidArgument);
     };
@@ -145,7 +145,7 @@ pub fn process_claim(
         check_signer(accounts.bidder_wallet).unwrap();
         check_account_key(
             accounts.destination_token,
-            &Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(),
+            &Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(),
         )
         .unwrap();
         Cpi::create_name_account(

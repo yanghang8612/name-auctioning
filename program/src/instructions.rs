@@ -7,7 +7,7 @@ use solana_program::{
     system_program, sysvar,
 };
 
-use crate::processor::BONFIDA_USDC_VAULT;
+use crate::processor::BONFIDA_FIDA_VAULT;
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
 pub enum ProgramInstruction {
@@ -250,7 +250,7 @@ pub fn claim(
         AccountMeta::new_readonly(bidder_wallet, true),
         AccountMeta::new(bidder_pot, false),
         AccountMeta::new(bidder_pot_token, false),
-        AccountMeta::new(Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(), false),
+        AccountMeta::new(Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(), false),
         AccountMeta::new_readonly(discount_account, false),
         AccountMeta::new(buy_now, false),
         AccountMeta::new(bonfida_sol_vault, false),
