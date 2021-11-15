@@ -433,7 +433,7 @@ async fn test_resell() {
         name.to_owned(),
         10,
         10,
-        None
+        None,
     );
 
     sign_send_instruction(&mut ctx, resell_naming_auction_instruction, vec![])

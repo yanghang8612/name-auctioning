@@ -9,7 +9,8 @@ import {
 } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
-  BONFIDA_BNB,
+  BONFIDA_FIDA_BNB,
+  BONFIDA_USDC_BNB,
   claimInstruction,
   createInstruction,
   createReverseInstruction,
@@ -144,7 +145,8 @@ export async function reclaimName(
   destinationTokenAccount: PublicKey,
   buyNow: PublicKey,
   bonfidaSolVault: PublicKey,
-  discountAccount: PublicKey
+  discountAccount: PublicKey,
+  isUsdc: boolean
 ): Promise<PrimedTransaction> {
   return await claimName(
     connection,
@@ -162,6 +164,7 @@ export async function reclaimName(
     discountAccount,
     buyNow,
     bonfidaSolVault,
+    isUsdc,
     destinationTokenAccount
   );
 }
@@ -182,6 +185,7 @@ export async function claimName(
   discountAccount: PublicKey,
   buyNow: PublicKey,
   bonfidaSolVault: PublicKey,
+  isUsdc: boolean,
   destinationTokenAccount?: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
@@ -222,14 +226,19 @@ export async function claimName(
     stateAccount,
     feePayer,
     quoteMint,
-    destinationTokenAccount ? destinationTokenAccount : BONFIDA_BNB,
+    destinationTokenAccount
+      ? destinationTokenAccount
+      : isUsdc
+      ? BONFIDA_USDC_BNB
+      : BONFIDA_FIDA_BNB,
     bidderWallet,
     bidderPot,
     bidderPotTokenAccount,
     isResell,
     discountAccount,
     buyNow,
-    bonfidaSolVault
+    bonfidaSolVault,
+    isUsdc
   );
 
   let instructions = [claimNameInstruction];

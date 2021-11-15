@@ -7,8 +7,12 @@ export enum PositionType {
   Long = 1,
 }
 
-export const BONFIDA_BNB = new PublicKey(
+export const BONFIDA_FIDA_BNB = new PublicKey(
   'AUoZ3YAhV3b2rZeEH93UMZHXUZcTramBvb4d9YEVySkc'
+);
+
+export const BONFIDA_USDC_BNB = new PublicKey(
+  'DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7'
 );
 
 export class Instruction {
@@ -255,7 +259,8 @@ export class claimInstruction {
     isResell: boolean,
     discountAccount: PublicKey,
     buyNow: PublicKey,
-    bonfidaSolVault: PublicKey
+    bonfidaSolVault: PublicKey,
+    isUsdc: boolean
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
@@ -345,7 +350,7 @@ export class claimInstruction {
         isWritable: true,
       },
       {
-        pubkey: BONFIDA_BNB,
+        pubkey: isUsdc ? BONFIDA_USDC_BNB : BONFIDA_FIDA_BNB,
         isSigner: false,
         isWritable: true,
       },
