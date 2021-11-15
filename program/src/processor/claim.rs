@@ -150,6 +150,12 @@ pub fn process_claim(
             accounts.destination_token,
             &Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(),
         )
+        .or_else(|_| {
+            check_account_key(
+                accounts.destination_token,
+                &Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(),
+            )
+        })
         .unwrap();
         Cpi::create_name_account(
             accounts.naming_service_program,
