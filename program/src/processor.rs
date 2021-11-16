@@ -1,8 +1,9 @@
 use crate::{
     instructions::ProgramInstruction,
     processor::{
-        claim::process_claim, create::process_create, create_reverse::process_create_reverse,
-        init::process_init, resell::process_resell, reset_auction::process_reset_auction,
+        claim::process_claim, create::process_create, create_admin::process_create_admin,
+        create_reverse::process_create_reverse, init::process_init, resell::process_resell,
+        reset_auction::process_reset_auction,
     },
 };
 use borsh::BorshDeserialize;
@@ -13,6 +14,7 @@ use solana_program::{
 
 pub mod claim;
 pub mod create;
+pub mod create_admin;
 pub mod create_reverse;
 pub mod init;
 pub mod resell;
@@ -34,6 +36,7 @@ pub const FEE_TIERS: [u64; 4] = [10_000_000, 100_000_000, 500_000_000, 1_000_000
 pub const FIDA_MINT: &str = "EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp";
 pub const ROOT_DOMAIN_ACCOUNT: &str = "58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx";
 pub const BONFIDA_SOL_VAULT: &str = "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi";
+pub const ADMIN_CREATE_KEY: &str = "CHG6XM8Ugk7xkZMcp5PMoJTYfwCG7XStv5rt2w1eQKPS";
 pub const BONFIDA_USDC_VAULT: &str = "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7";
 
 // Fees taken for the reselling of domain names
@@ -106,6 +109,11 @@ impl Processor {
             ProgramInstruction::CreateReverse { name } => {
                 msg!("Instruction: Create Reverse");
                 process_create_reverse(program_id, accounts, name)?;
+            }
+
+            ProgramInstruction::CreateAdmin(params) => {
+                msg!("Instruction: Create admin");
+                process_create_admin(program_id, accounts, params)?;
             }
         }
         Ok(())

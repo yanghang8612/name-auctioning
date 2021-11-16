@@ -8,6 +8,7 @@ use solana_program::{
 };
 
 use crate::processor::BONFIDA_FIDA_VAULT;
+pub use crate::processor::create_admin;
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
 pub enum ProgramInstruction {
@@ -115,6 +116,23 @@ pub enum ProgramInstruction {
     CreateReverse {
         name: String,
     },
+    //
+    // Admin instruction used only to reserve domains for ecosystem projects and prevent squatting
+    //
+    // Accounts expected by this instruction
+    //
+    // | Index | Writable | Signer | Description                      |
+    // |-------|----------|--------|----------------------------------|
+    // | 0     | ✅        | ✅      | The fee payer account            |
+    // | 1     | ✅        | ✅      | The admin account                |
+    // | 2     | ❌        | ❌      | The name service program account |
+    // | 3     | ❌        | ❌      | The root domain account          |
+    // | 4     | ✅        | ❌      | The name account                 |
+    // | 5     | ✅        | ❌      | The reverse lookup account       |
+    // | 6     | ❌        | ❌      | The central state account        |
+    // | 7     | ❌        | ❌      | The system program account       |
+    // | 8     | ❌        | ❌      | The rent sysvar account          |
+    CreateAdmin(create_admin::Params),
 }
 
 pub fn init(
@@ -331,6 +349,40 @@ pub fn reset_auction(
         AccountMeta::new_readonly(name, false),
         AccountMeta::new_readonly(state, false),
     ];
+    Instruction {
+        program_id,
+        accounts,
+        data,
+    }
+}
+
+pub fn create_admin(
+    program_id: Pubkey,
+    fee_payer: Pubkey,
+    admin: Pubkey,
+    root_domain: Pubkey,
+    name_account: Pubkey,
+    reverse_lookup_account: Pubkey,
+    central_state_account: Pubkey,
+    params: create_admin::Params,
+) -> Instruction {
+    let data = ProgramInstruction::CreateAdmin(params)
+        .try_to_vec()
+        .unwrap();
+
+    let accounts = vec![
+        AccountMeta::new(fee_payer, true),
+        AccountMeta::new(admin, true),
+        AccountMeta::new_readonly(spl_name_service::id(), false),
+        AccountMeta::new_readonly(root_domain, false),
+        AccountMeta::new(name_account, false),
+        AccountMeta::new(reverse_lookup_account, false),
+        AccountMeta::new_readonly(central_state_account, false),
+        AccountMeta::new_readonly(central_state_account, false),
+        AccountMeta::new_readonly(system_program::id(), false),
+        AccountMeta::new_readonly(sysvar::rent::id(), false),
+    ];
+
     Instruction {
         program_id,
         accounts,
