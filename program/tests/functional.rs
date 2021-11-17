@@ -2,17 +2,20 @@ use std::str::FromStr;
 
 use borsh::BorshSerialize;
 use name_auctioning::{
-    instructions::{create, create_reverse, init, resell},
-    processor::{AUCTION_PROGRAM_ID, BONFIDA_FIDA_VAULT, ROOT_DOMAIN_ACCOUNT, TOKEN_MINT},
+    instructions::{create, create_reverse, end_auction, init, resell},
+    processor::{
+        AUCTION_PROGRAM_ID, BONFIDA_FIDA_VAULT, FIDA_MINT, ROOT_DOMAIN_ACCOUNT, TOKEN_MINT,
+    },
 };
 use solana_program::{
     hash::hashv, instruction::Instruction, program_option::COption, program_pack::Pack,
-    pubkey::Pubkey,
+    pubkey::Pubkey, rent::Rent,
 };
 use solana_program_test::{processor, ProgramTest, ProgramTestContext};
 use solana_sdk::{
     account::Account,
     signature::{Keypair, Signer},
+    system_instruction,
     transaction::Transaction,
     transport::TransportError,
 };
@@ -21,6 +24,7 @@ use spl_name_service::{
     instruction::NameRegistryInstruction,
     state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX},
 };
+use spl_token::instruction::initialize_account;
 use spl_token::state::Mint;
 
 #[tokio::test]
@@ -417,6 +421,16 @@ async fn test_resell() {
         .await
         .unwrap();
 
+    // Create destination account
+    let destination_account = Keypair::new();
+
+    create_token_account(
+        &mut ctx,
+        &Pubkey::from_str(FIDA_MINT).unwrap(),
+        &destination_account,
+    )
+    .await;
+
     let resell_naming_auction_instruction = resell(
         program_id,
         auction_program_id,
@@ -429,7 +443,7 @@ async fn test_resell() {
         derived_state_key,
         ctx.payer.pubkey(),
         derived_reselling_state_key,
-        Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(),
+        destination_account.pubkey(),
         name.to_owned(),
         10,
         10,
@@ -437,6 +451,26 @@ async fn test_resell() {
     );
 
     sign_send_instruction(&mut ctx, resell_naming_auction_instruction, vec![])
+        .await
+        .unwrap();
+
+    // Cancel auction
+
+    let cancel_auction_instruction = end_auction(
+        program_id,
+        root_name_account_key,
+        name_account_key,
+        auction_account,
+        derived_central_state_key,
+        derived_state_key,
+        auction_program_id,
+        ctx.payer.pubkey(),
+        derived_reselling_state_key,
+        destination_account.pubkey(),
+        name.to_owned(),
+    );
+
+    sign_send_instruction(&mut ctx, cancel_auction_instruction, vec![])
         .await
         .unwrap();
 }
@@ -454,4 +488,33 @@ pub async fn sign_send_instruction(
     }
     transaction.partial_sign(&payer_signers, ctx.last_blockhash);
     ctx.banks_client.process_transaction(transaction).await
+}
+
+async fn create_token_account(
+    ctx: &mut ProgramTestContext,
+    mint: &Pubkey,
+    token_account: &Keypair,
+) {
+    let instructions = [
+        system_instruction::create_account(
+            &ctx.payer.pubkey(),
+            &token_account.pubkey(),
+            Rent::default().minimum_balance(165),
+            165,
+            &spl_token::id(),
+        ),
+        initialize_account(
+            &spl_token::id(),
+            &token_account.pubkey(),
+            mint,
+            &ctx.payer.pubkey(),
+        )
+        .unwrap(),
+    ];
+    let mut transaction = Transaction::new_with_payer(&instructions, Some(&ctx.payer.pubkey()));
+    transaction.partial_sign(&[&ctx.payer, token_account], ctx.last_blockhash);
+    ctx.banks_client
+        .process_transaction(transaction)
+        .await
+        .unwrap()
 }

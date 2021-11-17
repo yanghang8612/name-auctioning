@@ -2,8 +2,8 @@ use crate::{
     instructions::ProgramInstruction,
     processor::{
         claim::process_claim, create::process_create, create_admin::process_create_admin,
-        create_reverse::process_create_reverse, init::process_init, resell::process_resell,
-        reset_auction::process_reset_auction,
+        create_reverse::process_create_reverse, end_auction::process_end_auction,
+        init::process_init, resell::process_resell, reset_auction::process_reset_auction,
     },
 };
 use borsh::BorshDeserialize;
@@ -17,6 +17,7 @@ pub mod claim;
 pub mod create;
 pub mod create_admin;
 pub mod create_reverse;
+pub mod end_auction;
 pub mod init;
 pub mod resell;
 pub mod reset_auction;
@@ -130,6 +131,10 @@ impl Processor {
                     lamports,
                     space,
                 )?;
+            }
+            ProgramInstruction::EndAuction { name } => {
+                msg!("Instruction: End Auction");
+                process_end_auction(program_id, accounts, name)?;
             }
         }
         Ok(())
