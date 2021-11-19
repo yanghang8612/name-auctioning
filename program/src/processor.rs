@@ -12,6 +12,7 @@ use solana_program::{
     pubkey::Pubkey,
 };
 
+pub mod admin_claim;
 pub mod claim;
 pub mod create;
 pub mod create_admin;
@@ -38,6 +39,7 @@ pub const ROOT_DOMAIN_ACCOUNT: &str = "58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9J
 pub const BONFIDA_SOL_VAULT: &str = "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVXi";
 pub const ADMIN_CREATE_KEY: &str = "CHG6XM8Ugk7xkZMcp5PMoJTYfwCG7XStv5rt2w1eQKPS";
 pub const BONFIDA_USDC_VAULT: &str = "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7";
+pub const ADMIN_CLAIM_KEY: &str = "VBx642K1hYGLU5Zm1CHW1uRXAtFgxN5mRqyMcXnLZFW";
 
 // Fees taken for the reselling of domain names
 // | Tier | Percentage of payout    | Requirements   |
@@ -114,6 +116,20 @@ impl Processor {
             ProgramInstruction::CreateAdmin(params) => {
                 msg!("Instruction: Create admin");
                 process_create_admin(program_id, accounts, params)?;
+            }
+            ProgramInstruction::ClaimAdmin {
+                hashed_name,
+                lamports,
+                space,
+            } => {
+                msg!("Instruction: Admin Claim");
+                process_claim(
+                    program_id,
+                    accounts,
+                    Vec::from(hashed_name),
+                    lamports,
+                    space,
+                )?;
             }
         }
         Ok(())

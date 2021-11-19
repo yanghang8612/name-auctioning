@@ -7,8 +7,8 @@ use solana_program::{
     system_program, sysvar,
 };
 
-use crate::processor::BONFIDA_FIDA_VAULT;
 pub use crate::processor::create_admin;
+use crate::processor::BONFIDA_FIDA_VAULT;
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
 pub enum ProgramInstruction {
@@ -133,6 +133,38 @@ pub enum ProgramInstruction {
     // | 7     | ❌        | ❌      | The system program account       |
     // | 8     | ❌        | ❌      | The rent sysvar account          |
     CreateAdmin(create_admin::Params),
+    //
+    // Admin instruction used to force the claim of a broken name
+    //
+    /// Accounts expected by this instruction:
+    ///
+    ///   1. `[]` The sysvar clock account
+    ///   2. `[]` The spl token program
+    ///   3. `[]` The spl name service program
+    ///   4. `[]` The root domain account
+    ///   5. `[]` The name account
+    ///   6. `[]` The system program
+    ///   7. `[]` The auction program
+    ///   8. `[writable]` The auction account
+    ///   9. `[]` The central state account
+    ///   10. `[writable]` The state account
+    ///   11. `[writable]` The reselling account
+    ///   12. `[writable, signer]` The fee payer account
+    ///   13. `[writable]` The quote mint account
+    ///   14. `[writable]` The payout destination token account
+    ///   15. `[signer]` The bidder wallet account
+    ///   16. `[writable]` The bidder pot account
+    ///   17. `[writable]` The bidder pot token account
+    ///   18. `[]` The bonfida vault account
+    ///   19. `[]` The fida discount account
+    ///   20. `[writable]` The buy now account
+    ///   21. `[writable]` The Bonfida SOL vault account
+    ///   21. `[signer]` The claim admin
+    ClaimAdmin {
+        hashed_name: [u8; 32],
+        lamports: u64,
+        space: u32,
+    },
 }
 
 pub fn init(
@@ -381,6 +413,67 @@ pub fn create_admin(
         AccountMeta::new_readonly(central_state_account, false),
         AccountMeta::new_readonly(system_program::id(), false),
         AccountMeta::new_readonly(sysvar::rent::id(), false),
+    ];
+
+    Instruction {
+        program_id,
+        accounts,
+        data,
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn admin_claim(
+    program_id: Pubkey,
+    auction_program_id: Pubkey,
+    root_domain: Pubkey,
+    name_account: Pubkey,
+    auction_account: Pubkey,
+    state_account: Pubkey,
+    central_state_account: Pubkey,
+    fee_payer: Pubkey,
+    destination_token_account: Pubkey,
+    quote_mint: Pubkey,
+    bidder_wallet: Pubkey,
+    bidder_pot: Pubkey,
+    bidder_pot_token: Pubkey,
+    lamports: u64,
+    space: u32,
+    hashed_name: [u8; 32],
+    discount_account: Pubkey,
+    buy_now: Pubkey,
+    bonfida_sol_vault: Pubkey,
+    admin: Pubkey,
+) -> Instruction {
+    let data = ProgramInstruction::Claim {
+        hashed_name,
+        lamports,
+        space,
+    }
+    .try_to_vec()
+    .unwrap();
+    let accounts = vec![
+        AccountMeta::new_readonly(sysvar::clock::id(), false),
+        AccountMeta::new_readonly(spl_token::id(), false),
+        AccountMeta::new_readonly(spl_name_service::id(), false),
+        AccountMeta::new_readonly(root_domain, false),
+        AccountMeta::new_readonly(name_account, false),
+        AccountMeta::new_readonly(system_program::id(), false),
+        AccountMeta::new(auction_account, false),
+        AccountMeta::new_readonly(central_state_account, false),
+        AccountMeta::new(state_account, false),
+        AccountMeta::new_readonly(auction_program_id, false),
+        AccountMeta::new(fee_payer, true),
+        AccountMeta::new(quote_mint, false),
+        AccountMeta::new(destination_token_account, false),
+        AccountMeta::new_readonly(bidder_wallet, true),
+        AccountMeta::new(bidder_pot, false),
+        AccountMeta::new(bidder_pot_token, false),
+        AccountMeta::new(Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(), false),
+        AccountMeta::new_readonly(discount_account, false),
+        AccountMeta::new(buy_now, false),
+        AccountMeta::new(bonfida_sol_vault, false),
+        AccountMeta::new_readonly(admin, true),
     ];
 
     Instruction {
