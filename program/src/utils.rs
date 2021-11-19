@@ -334,6 +334,35 @@ impl Cpi {
             )
         }
     }
+
+    pub fn end_auction<'a>(
+        auction_program: &AccountInfo<'a>,
+        authority: &AccountInfo<'a>,
+        auction: &AccountInfo<'a>,
+        clock_sysvar_account: &AccountInfo<'a>,
+        resource: Pubkey,
+        signer_seeds: &[&[u8]],
+    ) -> ProgramResult {
+        let end_auction_instruction = spl_auction::instruction::end_auction_instruction(
+            *auction_program.key,
+            *authority.key,
+            spl_auction::processor::EndAuctionArgs {
+                resource,
+                reveal: None,
+            },
+        );
+
+        invoke_signed(
+            &end_auction_instruction,
+            &[
+                auction_program.clone(),
+                authority.clone(),
+                auction.clone(),
+                clock_sysvar_account.clone(),
+            ],
+            &[signer_seeds],
+        )
+    }
 }
 
 pub fn check_account_key(account: &AccountInfo, key: &Pubkey) -> ProgramResult {

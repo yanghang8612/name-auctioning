@@ -9,6 +9,7 @@ use solana_program::{
 
 pub use crate::processor::create_admin;
 use crate::processor::BONFIDA_FIDA_VAULT;
+use crate::processor::{BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT};
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
 pub enum ProgramInstruction {
@@ -164,6 +165,13 @@ pub enum ProgramInstruction {
         hashed_name: [u8; 32],
         lamports: u64,
         space: u32,
+    },
+    /// End a reselling auction
+    ///
+    /// Accounts expected by this instruction:
+    ///
+    EndAuction {
+        name: String,
     },
 }
 
@@ -474,6 +482,45 @@ pub fn admin_claim(
         AccountMeta::new(buy_now, false),
         AccountMeta::new(bonfida_sol_vault, false),
         AccountMeta::new_readonly(admin, true),
+    ];
+
+    Instruction {
+        program_id,
+        accounts,
+        data,
+    }
+}
+
+pub fn end_auction(
+    program_id: Pubkey,
+    root_domain: Pubkey,
+    name_account: Pubkey,
+    auction: Pubkey,
+    central_state: Pubkey,
+    state: Pubkey,
+    auction_program_id: Pubkey,
+    auction_creator: Pubkey,
+    reselling_state: Pubkey,
+    destination_token: Pubkey,
+    name: String,
+) -> Instruction {
+    let data = ProgramInstruction::EndAuction { name }
+        .try_to_vec()
+        .unwrap();
+    let accounts = vec![
+        AccountMeta::new_readonly(sysvar::clock::id(), false),
+        AccountMeta::new_readonly(spl_name_service::id(), false),
+        AccountMeta::new_readonly(root_domain, false),
+        AccountMeta::new(name_account, false),
+        AccountMeta::new_readonly(auction_program_id, false),
+        AccountMeta::new(auction, false),
+        AccountMeta::new_readonly(central_state, false),
+        AccountMeta::new(state, false),
+        AccountMeta::new(auction_creator, true),
+        AccountMeta::new(reselling_state, false),
+        AccountMeta::new(destination_token, false),
+        AccountMeta::new(Pubkey::from_str(BONFIDA_SOL_VAULT).unwrap(), false),
+        AccountMeta::new(system_program::id(), false),
     ];
 
     Instruction {
