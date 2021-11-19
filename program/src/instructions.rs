@@ -8,7 +8,6 @@ use solana_program::{
 };
 
 pub use crate::processor::create_admin;
-use crate::processor::BONFIDA_FIDA_VAULT;
 use crate::processor::{BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT};
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
