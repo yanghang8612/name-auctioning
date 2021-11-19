@@ -6,12 +6,13 @@ use solana_program::{
     clock::Clock,
     entrypoint::ProgramResult,
     msg,
+    program::invoke_signed,
     program_error::ProgramError,
     program_pack::Pack,
     pubkey::Pubkey,
     sysvar::Sysvar,
 };
-use spl_auction::processor::AuctionData;
+use spl_auction::{instruction::close_auction_pot, processor::AuctionData};
 use spl_name_service::state::get_seeds_and_key;
 use spl_token::state::Account;
 
@@ -228,6 +229,31 @@ pub fn process_claim(
 
         fee_percentage = FEES[fee_tier];
     }
+
+    let clean_up_instr = close_auction_pot(
+        *accounts.auction_program.key,
+        *accounts.auction.key,
+        *accounts.bidder_pot.key,
+        *accounts.bidder_wallet.key,
+        *accounts.bonfida_vault.key,
+        *accounts.system_program.key,
+        *accounts.central_state.key,
+        *accounts.name.key,
+    );
+    invoke_signed(
+        &clean_up_instr,
+        &[
+            accounts.auction_program.clone(),
+            accounts.auction.clone(),
+            accounts.bidder_pot.clone(),
+            accounts.bidder_wallet.clone(),
+            accounts.bonfida_vault.clone(),
+            accounts.system_program.clone(),
+            accounts.central_state.clone(),
+            accounts.name.clone(),
+        ],
+        &[central_state_signer_seeds],
+    );
 
     Cpi::claim_auction(
         accounts.spl_token_program,
