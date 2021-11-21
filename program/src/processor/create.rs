@@ -24,7 +24,7 @@ use crate::{
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
 
-use super::{AUCTION_MAX_LENGTH, AUCTION_PROGRAM_ID, ROOT_DOMAIN_ACCOUNT};
+use super::{AUCTION_MAX_LENGTH, AUCTION_PROGRAM_ID, FIDA_MINT, ROOT_DOMAIN_ACCOUNT};
 
 struct Accounts<'a, 'b: 'a> {
     rent_sysvar: &'a AccountInfo<'b>,
@@ -84,6 +84,7 @@ fn parse_accounts<'a, 'b: 'a>(
         &Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
     )
     .unwrap();
+    check_account_key(a.quote_mint, &Pubkey::from_str(FIDA_MINT).unwrap()).unwrap();
 
     Ok(a)
 }

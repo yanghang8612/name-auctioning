@@ -283,7 +283,7 @@ impl Cpi {
             name_bytes,
             *reverse_lookup_account.key,
             *authority.key,
-            None
+            None,
         )?;
 
         invoke_signed(
