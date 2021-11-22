@@ -1,9 +1,10 @@
 use crate::{
     instructions::ProgramInstruction,
     processor::{
-        claim::process_claim, create::process_create, create_admin::process_create_admin,
-        create_reverse::process_create_reverse, end_auction::process_end_auction,
-        init::process_init, resell::process_resell, reset_auction::process_reset_auction,
+        admin_claim::process_a_claim, claim::process_claim, create::process_create,
+        create_admin::process_create_admin, create_reverse::process_create_reverse,
+        end_auction::process_end_auction, init::process_init, resell::process_resell,
+        reset_auction::process_reset_auction,
     },
 };
 use borsh::BorshDeserialize;
@@ -118,19 +119,9 @@ impl Processor {
                 msg!("Instruction: Create admin");
                 process_create_admin(program_id, accounts, params)?;
             }
-            ProgramInstruction::ClaimAdmin {
-                hashed_name,
-                lamports,
-                space,
-            } => {
-                msg!("Instruction: Admin Claim");
-                process_claim(
-                    program_id,
-                    accounts,
-                    Vec::from(hashed_name),
-                    lamports,
-                    space,
-                )?;
+            ProgramInstruction::ClaimAdmin {} => {
+                msg!("Instruction: A Claim");
+                process_a_claim(program_id, accounts)?;
             }
             ProgramInstruction::EndAuction { name } => {
                 msg!("Instruction: End Auction");

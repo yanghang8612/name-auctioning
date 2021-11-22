@@ -160,11 +160,7 @@ pub enum ProgramInstruction {
     ///   20. `[writable]` The buy now account
     ///   21. `[writable]` The Bonfida SOL vault account
     ///   21. `[signer]` The claim admin
-    ClaimAdmin {
-        hashed_name: [u8; 32],
-        lamports: u64,
-        space: u32,
-    },
+    ClaimAdmin {},
     /// End a reselling auction
     ///
     /// Accounts expected by this instruction:
@@ -438,27 +434,14 @@ pub fn admin_claim(
     auction_account: Pubkey,
     state_account: Pubkey,
     central_state_account: Pubkey,
-    fee_payer: Pubkey,
-    destination_token_account: Pubkey,
     quote_mint: Pubkey,
     bidder_wallet: Pubkey,
     bidder_pot: Pubkey,
     bidder_pot_token: Pubkey,
-    lamports: u64,
-    space: u32,
-    hashed_name: [u8; 32],
-    discount_account: Pubkey,
-    buy_now: Pubkey,
-    bonfida_sol_vault: Pubkey,
     admin: Pubkey,
+    new_name_owner: Pubkey,
 ) -> Instruction {
-    let data = ProgramInstruction::Claim {
-        hashed_name,
-        lamports,
-        space,
-    }
-    .try_to_vec()
-    .unwrap();
+    let data = ProgramInstruction::ClaimAdmin {}.try_to_vec().unwrap();
     let accounts = vec![
         AccountMeta::new_readonly(sysvar::clock::id(), false),
         AccountMeta::new_readonly(spl_token::id(), false),
@@ -466,21 +449,17 @@ pub fn admin_claim(
         AccountMeta::new_readonly(root_domain, false),
         AccountMeta::new_readonly(name_account, false),
         AccountMeta::new_readonly(system_program::id(), false),
+        AccountMeta::new_readonly(auction_program_id, false),
         AccountMeta::new(auction_account, false),
         AccountMeta::new_readonly(central_state_account, false),
         AccountMeta::new(state_account, false),
-        AccountMeta::new_readonly(auction_program_id, false),
-        AccountMeta::new(fee_payer, true),
         AccountMeta::new(quote_mint, false),
-        AccountMeta::new(destination_token_account, false),
         AccountMeta::new_readonly(bidder_wallet, true),
         AccountMeta::new(bidder_pot, false),
         AccountMeta::new(bidder_pot_token, false),
         AccountMeta::new(Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(), false),
-        AccountMeta::new_readonly(discount_account, false),
-        AccountMeta::new(buy_now, false),
-        AccountMeta::new(bonfida_sol_vault, false),
         AccountMeta::new_readonly(admin, true),
+        AccountMeta::new_readonly(new_name_owner, false),
     ];
 
     Instruction {
