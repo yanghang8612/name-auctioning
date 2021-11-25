@@ -8,7 +8,6 @@ use solana_program::{
     msg,
     program::invoke_signed,
     program_error::ProgramError,
-    program_pack::Pack,
     pubkey::Pubkey,
     sysvar::Sysvar,
 };
@@ -17,7 +16,6 @@ use spl_auction::{instruction::close_auction_pot, processor::AuctionData};
 use super::ADMIN_CLAIM_KEY;
 use crate::{
     error::NameAuctionError,
-    state::NameAuction,
     utils::{check_account_key, check_signer, Cpi},
 };
 
@@ -31,13 +29,14 @@ struct Accounts<'a, 'b: 'a> {
     central_state: &'a AccountInfo<'b>,
     state: &'a AccountInfo<'b>,
     auction_program: &'a AccountInfo<'b>,
-    quote_mint: &'a AccountInfo<'b>,
     bidder_wallet: &'a AccountInfo<'b>,
     bidder_pot: &'a AccountInfo<'b>,
     bidder_pot_token: &'a AccountInfo<'b>,
     bonfida_vault: &'a AccountInfo<'b>,
     admin_signer: &'a AccountInfo<'b>,
     new_name_owner: &'a AccountInfo<'b>,
+    fee_payer: &'a AccountInfo<'b>,
+    root_domain: &'a AccountInfo<'b>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -54,13 +53,14 @@ fn parse_accounts<'a, 'b: 'a>(
         auction: next_account_info(accounts_iter)?,
         central_state: next_account_info(accounts_iter)?,
         state: next_account_info(accounts_iter)?,
-        quote_mint: next_account_info(accounts_iter)?,
         bidder_wallet: next_account_info(accounts_iter)?,
         bidder_pot: next_account_info(accounts_iter)?,
         bidder_pot_token: next_account_info(accounts_iter)?,
         bonfida_vault: next_account_info(accounts_iter)?,
         admin_signer: next_account_info(accounts_iter)?,
         new_name_owner: next_account_info(accounts_iter)?,
+        fee_payer: next_account_info(accounts_iter)?,
+        root_domain: next_account_info(accounts_iter)?,
     };
     check_signer(a.admin_signer).unwrap();
     check_account_key(a.admin_signer, &Pubkey::from_str(ADMIN_CLAIM_KEY).unwrap()).unwrap();
@@ -68,12 +68,14 @@ fn parse_accounts<'a, 'b: 'a>(
     Ok(a)
 }
 
-pub fn process_a_claim(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
+pub fn process_a_claim(
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    hashed_name: Vec<u8>,
+    lamports: u64,
+    space: u32,
+) -> ProgramResult {
     let accounts = parse_accounts(accounts)?;
-
-    let state = NameAuction::unpack_unchecked(&accounts.state.data.borrow())?;
-
-    check_account_key(accounts.quote_mint, &Pubkey::new(&state.quote_mint))?;
 
     let (derived_state_key, _) =
         Pubkey::find_program_address(&[&accounts.name.key.to_bytes()], program_id);
@@ -81,14 +83,34 @@ pub fn process_a_claim(program_id: &Pubkey, accounts: &[AccountInfo]) -> Program
         msg!("An invalid signer account was provided");
         return Err(ProgramError::InvalidArgument);
     }
-    if accounts.name.data_is_empty() {
-        msg!("Name account does not exist");
-        return Err(ProgramError::InvalidArgument);
-    }
 
     let central_state_nonce = accounts.central_state.data.borrow()[0];
-
     let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
+
+    if accounts.name.data_is_empty() {
+        msg!("Name account does not exist. Creating.");
+        Cpi::create_name_account(
+            accounts.naming_service_program,
+            accounts.system_program,
+            accounts.name,
+            accounts.fee_payer,
+            accounts.new_name_owner,
+            accounts.root_domain,
+            accounts.central_state,
+            hashed_name,
+            lamports,
+            space,
+            central_state_signer_seeds,
+        )?;
+    } else {
+        Cpi::transfer_name_account(
+            accounts.naming_service_program,
+            accounts.central_state,
+            accounts.name,
+            &accounts.new_name_owner.key,
+            Some(central_state_signer_seeds),
+        )?;
+    }
 
     let auction: AuctionData = try_from_slice_unchecked(&accounts.auction.data.borrow()).unwrap();
     let clock = Clock::from_account_info(accounts.clock_sysvar).unwrap();
@@ -107,14 +129,6 @@ pub fn process_a_claim(program_id: &Pubkey, accounts: &[AccountInfo]) -> Program
         unreachable!()
     }
 
-    Cpi::transfer_name_account(
-        accounts.naming_service_program,
-        accounts.central_state,
-        accounts.name,
-        &accounts.new_name_owner.key,
-        Some(central_state_signer_seeds),
-    )?;
-
     let clean_up_instr = close_auction_pot(
         *accounts.auction_program.key,
         *accounts.auction.key,
@@ -123,8 +137,8 @@ pub fn process_a_claim(program_id: &Pubkey, accounts: &[AccountInfo]) -> Program
         *accounts.bonfida_vault.key,
         *accounts.system_program.key,
         *accounts.central_state.key,
-        *accounts.bidder_pot_token.key,
         *accounts.bonfida_vault.key,
+        *accounts.bidder_pot_token.key,
         *accounts.name.key,
     );
     invoke_signed(

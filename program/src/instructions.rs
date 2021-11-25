@@ -8,7 +8,7 @@ use solana_program::{
 };
 
 pub use crate::processor::create_admin;
-use crate::processor::{BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT};
+use crate::processor::{BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT};
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
 pub enum ProgramInstruction {
@@ -160,7 +160,11 @@ pub enum ProgramInstruction {
     ///   20. `[writable]` The buy now account
     ///   21. `[writable]` The Bonfida SOL vault account
     ///   21. `[signer]` The claim admin
-    ClaimAdmin {},
+    ClaimAdmin {
+        hashed_name: [u8; 32],
+        lamports: u64,
+        space: u32,
+    },
     /// End a reselling auction
     ///
     /// Accounts expected by this instruction:
@@ -429,37 +433,46 @@ pub fn create_admin(
 pub fn admin_claim(
     program_id: Pubkey,
     auction_program_id: Pubkey,
-    root_domain: Pubkey,
     name_account: Pubkey,
     auction_account: Pubkey,
     state_account: Pubkey,
     central_state_account: Pubkey,
-    quote_mint: Pubkey,
     bidder_wallet: Pubkey,
     bidder_pot: Pubkey,
     bidder_pot_token: Pubkey,
     admin: Pubkey,
     new_name_owner: Pubkey,
+    fee_payer: Pubkey,
+    root_name: Pubkey,
+    hashed_name: [u8; 32],
+    lamports: u64,
+    space: u32,
 ) -> Instruction {
-    let data = ProgramInstruction::ClaimAdmin {}.try_to_vec().unwrap();
+    let data = ProgramInstruction::ClaimAdmin {
+        hashed_name,
+        lamports,
+        space,
+    }
+    .try_to_vec()
+    .unwrap();
     let accounts = vec![
         AccountMeta::new_readonly(sysvar::clock::id(), false),
         AccountMeta::new_readonly(spl_token::id(), false),
         AccountMeta::new_readonly(spl_name_service::id(), false),
-        AccountMeta::new_readonly(root_domain, false),
-        AccountMeta::new_readonly(name_account, false),
+        AccountMeta::new(name_account, false),
         AccountMeta::new_readonly(system_program::id(), false),
         AccountMeta::new_readonly(auction_program_id, false),
         AccountMeta::new(auction_account, false),
         AccountMeta::new_readonly(central_state_account, false),
         AccountMeta::new(state_account, false),
-        AccountMeta::new(quote_mint, false),
-        AccountMeta::new_readonly(bidder_wallet, true),
+        AccountMeta::new_readonly(bidder_wallet, false),
         AccountMeta::new(bidder_pot, false),
         AccountMeta::new(bidder_pot_token, false),
-        AccountMeta::new(Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(), false),
+        AccountMeta::new(Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(), false),
         AccountMeta::new_readonly(admin, true),
         AccountMeta::new_readonly(new_name_owner, false),
+        AccountMeta::new(fee_payer, true),
+        AccountMeta::new_readonly(root_name, false),
     ];
 
     Instruction {

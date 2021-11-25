@@ -119,9 +119,13 @@ impl Processor {
                 msg!("Instruction: Create admin");
                 process_create_admin(program_id, accounts, params)?;
             }
-            ProgramInstruction::ClaimAdmin {} => {
+            ProgramInstruction::ClaimAdmin {
+                hashed_name,
+                lamports,
+                space,
+            } => {
                 msg!("Instruction: A Claim");
-                process_a_claim(program_id, accounts)?;
+                process_a_claim(program_id, accounts, hashed_name.to_vec(), lamports, space)?;
             }
             ProgramInstruction::EndAuction { name } => {
                 msg!("Instruction: End Auction");
