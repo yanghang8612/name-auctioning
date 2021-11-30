@@ -47,7 +47,8 @@ pub fn process_init(
     let accounts = parse_accounts(program_id, accounts)?;
 
     let signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[state_nonce]];
-    let derived_state_key = Pubkey::create_program_address(signer_seeds, program_id)?;
+    let (derived_state_key, state_nonce) =
+        Pubkey::find_program_address(&[&program_id.to_bytes()], program_id);
 
     if &derived_state_key != accounts.state_account.key {
         msg!("Incorrect state account or signer nonce provided");
