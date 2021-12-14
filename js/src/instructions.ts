@@ -260,7 +260,8 @@ export class claimInstruction {
     discountAccount: PublicKey,
     buyNow: PublicKey,
     bonfidaSolVault: PublicKey,
-    isUsdc: boolean
+    isUsdc: boolean,
+    referrer?: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
@@ -370,6 +371,14 @@ export class claimInstruction {
         isWritable: true,
       },
     ];
+
+    if (referrer) {
+      keys.push({
+        pubkey: referrer,
+        isSigner: false,
+        isWritable: true,
+      });
+    }
 
     return new TransactionInstruction({
       keys,

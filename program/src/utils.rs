@@ -149,6 +149,7 @@ impl Cpi {
         bonfida_vault: &AccountInfo<'a>,
         buy_now: &AccountInfo<'a>,
         bonfida_sol_vault: &AccountInfo<'a>,
+        referrer: Option<&AccountInfo<'a>>,
         resource: Pubkey,
         signer_seeds: &[&[u8]],
         fee_percentage: u64,
@@ -163,6 +164,7 @@ impl Cpi {
             *bonfida_vault.key,
             *buy_now.key,
             *bonfida_sol_vault.key,
+            referrer.map(|acc| *acc.key),
             ClaimBidArgs {
                 resource,
                 fee_percentage,

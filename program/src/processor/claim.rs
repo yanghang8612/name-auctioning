@@ -48,6 +48,7 @@ struct Accounts<'a, 'b: 'a> {
     fida_discount: &'a AccountInfo<'b>,
     buy_now: &'a AccountInfo<'b>,
     bonfida_sol_vault: &'a AccountInfo<'b>,
+    referrer: Option<&'a AccountInfo<'b>>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -77,6 +78,7 @@ fn parse_accounts<'a, 'b: 'a>(
         fida_discount: next_account_info(accounts_iter)?,
         buy_now: next_account_info(accounts_iter)?,
         bonfida_sol_vault: next_account_info(accounts_iter)?,
+        referrer: next_account_info(accounts_iter).ok(),
     };
     let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
@@ -268,6 +270,7 @@ pub fn process_claim(
         accounts.bonfida_vault,
         accounts.buy_now,
         accounts.bonfida_sol_vault,
+        accounts.referrer,
         *accounts.name.key,
         signer_seeds,
         fee_percentage,

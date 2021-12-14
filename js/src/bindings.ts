@@ -186,7 +186,8 @@ export async function claimName(
   buyNow: PublicKey,
   bonfidaSolVault: PublicKey,
   isUsdc: boolean,
-  destinationTokenAccount?: PublicKey
+  destinationTokenAccount?: PublicKey,
+  referrer?: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -238,7 +239,8 @@ export async function claimName(
     discountAccount,
     buyNow,
     bonfidaSolVault,
-    isUsdc
+    isUsdc,
+    referrer
   );
 
   let instructions = [claimNameInstruction];
