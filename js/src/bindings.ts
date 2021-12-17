@@ -43,6 +43,10 @@ export const ROOT_DOMAIN_ACCOUNT = new PublicKey(
   // "4MpujQVQLPPsC8ToEcSepSvtYCf5ZBf2odxZkZ2Qz8QH"
 );
 
+export const PYTH_FIDDA_PRICE_ACC = new PublicKey(
+  '3QmhYpfwHdzckrxBcegosSK5sVb3Fr4LSk25yF6s4Wfz'
+);
+
 // const SLOT_SIZE = 33;
 
 export type PrimedTransaction = [Account[], TransactionInstruction[]];

@@ -8,7 +8,9 @@ use solana_program::{
 };
 
 pub use crate::processor::create_admin;
-use crate::processor::{BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT};
+use crate::processor::{
+    BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, PYTH_FIDA_PRICE_ACC,
+};
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
 pub enum ProgramInstruction {
@@ -41,6 +43,7 @@ pub enum ProgramInstruction {
     ///   12. `[writable, signer]` The fee payer account
     ///   13. `[writable]` The quote mint account
     ///   14. `[writable]` The buy now account
+    ///   15. `[]` The Pyth Fida price account
     Create {
         name: String,
     },
@@ -225,6 +228,7 @@ pub fn create(
         AccountMeta::new(state_account, false),
         AccountMeta::new(fee_payer, true),
         AccountMeta::new(quote_mint, false),
+        AccountMeta::new_readonly(Pubkey::from_str(PYTH_FIDA_PRICE_ACC).unwrap(), false),
     ];
     Instruction {
         program_id,

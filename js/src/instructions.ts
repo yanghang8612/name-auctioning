@@ -1,6 +1,7 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import BN from 'bn.js';
 import { Schema, serialize } from 'borsh';
+import { PYTH_FIDDA_PRICE_ACC } from './bindings';
 
 export enum PositionType {
   Short = 0,
@@ -192,6 +193,11 @@ export class createInstruction {
       },
       {
         pubkey: quoteMint,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: PYTH_FIDDA_PRICE_ACC,
         isSigner: false,
         isWritable: false,
       },

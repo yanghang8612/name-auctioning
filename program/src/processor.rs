@@ -29,7 +29,7 @@ pub const OVERTIME_LENGTH: u64 = 900;
 pub const PRICE_INCREMENT_MARGIN: u64 = 429496729; // 1% bid increment
 pub const END_AUCTION_GAP: u64 = 600;
 pub const TOKEN_MINT: &str = "EchesyfXePKdLtoiZSL8pBe8Myagyy8ZRqsACNCFGnvp"; // FIDA mint
-pub const MINIMUM_PRICE: u64 = 2_500_000; // 2.5 FIDA
+pub const MINIMUM_PRICE_USD: u64 = 20_000_000; // 20 USD
 pub const AUCTION_PROGRAM_ID: &str = "AVWV7vdWbLqXiLKFaP19GhYurhwxaLp2qRBSjT5tR5vT";
 pub const BONFIDA_FIDA_VAULT: &str = "AUoZ3YAhV3b2rZeEH93UMZHXUZcTramBvb4d9YEVySkc";
 pub const AUCTION_MAX_LENGTH: u64 = 259200; // 3 days in seconds
@@ -42,6 +42,7 @@ pub const BONFIDA_SOL_VAULT: &str = "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVX
 pub const ADMIN_CREATE_KEY: &str = "CHG6XM8Ugk7xkZMcp5PMoJTYfwCG7XStv5rt2w1eQKPS";
 pub const BONFIDA_USDC_VAULT: &str = "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7";
 pub const ADMIN_CLAIM_KEY: &str = "VBx642K1hYGLU5Zm1CHW1uRXAtFgxN5mRqyMcXnLZFW";
+pub const PYTH_FIDA_PRICE_ACC: &str = "3QmhYpfwHdzckrxBcegosSK5sVb3Fr4LSk25yF6s4Wfz"; //TODO switch to mainnet
 
 // Fees taken for the reselling of domain names
 // | Tier | Percentage of payout    | Requirements   |

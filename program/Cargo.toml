@@ -19,6 +19,7 @@ borsh = "0.9"
 thiserror = "1.0.24"
 spl-token = {version = "3.2.0", features = ["no-entrypoint"]}
 spl-associated-token-account = "1.0.3"
+bonfida-utils = {git = "https://github.com/Bonfida/bonfida-utils.git"}
 spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"]}
 spl-auction = {git = "ssh://git@github.com/Bonfida/metaplex.git", branch="bonfida-fork", features = ["no-entrypoint"]}
 

@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use bonfida_utils::{fp_math::fp32_div, pyth::get_oracle_price_fp32};
 use borsh::BorshSerialize;
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
@@ -19,12 +20,14 @@ use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
 
 use crate::{
     error::NameAuctionError,
-    processor::MINIMUM_PRICE,
+    processor::MINIMUM_PRICE_USD,
     state::{NameAuction, NameAuctionStatus},
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
 
-use super::{AUCTION_MAX_LENGTH, AUCTION_PROGRAM_ID, FIDA_MINT, ROOT_DOMAIN_ACCOUNT};
+use super::{
+    AUCTION_MAX_LENGTH, AUCTION_PROGRAM_ID, FIDA_MINT, PYTH_FIDA_PRICE_ACC, ROOT_DOMAIN_ACCOUNT,
+};
 
 struct Accounts<'a, 'b: 'a> {
     rent_sysvar: &'a AccountInfo<'b>,
@@ -40,6 +43,7 @@ struct Accounts<'a, 'b: 'a> {
     auction_program: &'a AccountInfo<'b>,
     fee_payer: &'a AccountInfo<'b>,
     quote_mint: &'a AccountInfo<'b>,
+    pyth_fida_price_acc: &'a AccountInfo<'b>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -61,6 +65,7 @@ fn parse_accounts<'a, 'b: 'a>(
         state: next_account_info(accounts_iter)?,
         fee_payer: next_account_info(accounts_iter)?,
         quote_mint: next_account_info(accounts_iter)?,
+        pyth_fida_price_acc: next_account_info(accounts_iter)?,
     };
 
     check_account_key(a.rent_sysvar, &sysvar::rent::id()).unwrap();
@@ -85,6 +90,11 @@ fn parse_accounts<'a, 'b: 'a>(
     )
     .unwrap();
     check_account_key(a.quote_mint, &Pubkey::from_str(FIDA_MINT).unwrap()).unwrap();
+    check_account_key(
+        a.pyth_fida_price_acc,
+        &Pubkey::from_str(PYTH_FIDA_PRICE_ACC).unwrap(),
+    )
+    .unwrap();
 
     Ok(a)
 }
@@ -225,6 +235,11 @@ pub fn process_create(
     msg!("Setting up auction");
     solana_program::log::sol_log_compute_units();
 
+    let min_price_fida = fp32_div(
+        MINIMUM_PRICE_USD,
+        get_oracle_price_fp32(&accounts.pyth_fida_price_acc.data.borrow(), 6, 6).unwrap(), // Fida and USD have 6 decimals
+    )
+    .unwrap();
     Cpi::create_auction(
         accounts.auction_program,
         accounts.rent_sysvar,
@@ -235,7 +250,7 @@ pub fn process_create(
         accounts.state,
         None,
         *accounts.name.key,
-        MINIMUM_PRICE,
+        min_price_fida,
         signer_seeds,
         None,
     )?;
