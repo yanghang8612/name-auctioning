@@ -68,7 +68,7 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
-    check_account_owner(a.central_state, &program_id).unwrap();
+    check_account_owner(a.central_state, program_id).unwrap();
     check_account_key(
         a.auction_program,
         &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap(),
@@ -102,7 +102,7 @@ pub fn process_create(
     }
 
     let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + &name).as_bytes()])
-        .0
+        .as_ref()
         .to_vec();
 
     if hashed_name.len() != 32 {
@@ -168,7 +168,7 @@ pub fn process_create(
             accounts.auction,
             accounts.state,
             *accounts.name.key,
-            &signer_seeds,
+            signer_seeds,
         )?;
         return Ok(());
     }
@@ -180,7 +180,7 @@ pub fn process_create(
 
     let hashed_reverse_lookup =
         hashv(&[(HASH_PREFIX.to_owned() + &name_account_key.to_string()).as_bytes()])
-            .0
+            .as_ref()
             .to_vec();
 
     let (reverse_lookup_account_key, _) = get_seeds_and_key(
@@ -250,7 +250,7 @@ pub fn process_create(
         accounts.auction,
         accounts.state,
         *accounts.name.key,
-        &signer_seeds,
+        signer_seeds,
     )?;
 
     if accounts.reverse_lookup.data_len() == 0 {

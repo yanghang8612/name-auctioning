@@ -60,7 +60,7 @@ fn parse_accounts<'a, 'b: 'a>(
         &Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
     )
     .unwrap();
-    check_account_owner(accounts.central_state, &program_id).unwrap();
+    check_account_owner(accounts.central_state, program_id).unwrap();
     check_account_key(accounts.system_program, &system_program::id()).unwrap();
     check_account_key(accounts.rent_sysvar, &sysvar::rent::id()).unwrap();
 
@@ -70,7 +70,7 @@ fn parse_accounts<'a, 'b: 'a>(
     }
 
     let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + &params.name).as_bytes()])
-        .0
+        .as_ref()
         .to_vec();
 
     if hashed_name.len() != 32 {
@@ -94,7 +94,7 @@ fn parse_accounts<'a, 'b: 'a>(
 
     let hashed_reverse_lookup =
         hashv(&[(HASH_PREFIX.to_owned() + &name_account_key.to_string()).as_bytes()])
-            .0
+            .as_ref()
             .to_vec();
 
     let (reverse_lookup_account_key, _) = get_seeds_and_key(

@@ -157,7 +157,7 @@ async fn test() {
     let test_name = "test";
 
     let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + test_name).as_bytes()])
-        .0
+        .as_ref()
         .to_vec();
 
     println!("Hashed name length {:?}", hashed_name.len());
@@ -174,7 +174,7 @@ async fn test() {
         &auction_program_id.to_bytes(),
         name_account.as_ref(),
     ];
-    let (auction_account, _) = Pubkey::find_program_address(auction_seeds, &&auction_program_id);
+    let (auction_account, _) = Pubkey::find_program_address(auction_seeds, &auction_program_id);
 
     // let rent = ctx.banks_client.get_rent().await.unwrap();
 
@@ -208,7 +208,7 @@ async fn test() {
 
     let hashed_reverse_lookup =
         hashv(&[(HASH_PREFIX.to_owned() + &name_account.to_string()).as_bytes()])
-            .0
+            .as_ref()
             .to_vec();
 
     let (reverse_lookup_account_key, _) = get_seeds_and_key(
@@ -344,7 +344,7 @@ async fn test_resell() {
 
     let name = "megosiani";
     let hashed_name: Vec<u8> = hashv(&[(HASH_PREFIX.to_owned() + name).as_bytes()])
-        .0
+        .as_ref()
         .to_vec();
     let (name_account_key, _) = get_seeds_and_key(
         &spl_name_service::id(),
@@ -354,7 +354,7 @@ async fn test_resell() {
     );
     let hashed_reverse_lookup =
         hashv(&[(HASH_PREFIX.to_owned() + &name_account_key.to_string()).as_bytes()])
-            .0
+            .as_ref()
             .to_vec();
 
     let auction_seeds = &[
@@ -362,7 +362,7 @@ async fn test_resell() {
         &auction_program_id.to_bytes(),
         name_account_key.as_ref(),
     ];
-    let (auction_account, _) = Pubkey::find_program_address(auction_seeds, &&auction_program_id);
+    let (auction_account, _) = Pubkey::find_program_address(auction_seeds, &auction_program_id);
 
     let (derived_state_key, _) =
         Pubkey::find_program_address(&[&name_account_key.to_bytes()], &program_id);

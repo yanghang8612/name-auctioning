@@ -88,8 +88,8 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_key(a.system_program, &system_program::id()).unwrap();
     check_account_key(a.auction_program, spl_auction_id).unwrap();
     check_account_owner(a.auction, spl_auction_id).unwrap();
-    check_account_owner(a.central_state, &program_id).unwrap();
-    check_account_owner(a.state, &program_id).unwrap();
+    check_account_owner(a.central_state, program_id).unwrap();
+    check_account_owner(a.state, program_id).unwrap();
     // check_signer(a.bidder_wallet).unwrap();
     if a.bonfida_vault.key != &Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap()
         && a.bonfida_vault.key != &Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap()
@@ -183,7 +183,7 @@ pub fn process_claim(
             msg!("An incorrect reselling state account was provided");
             return Err(ProgramError::InvalidArgument);
         }
-        check_account_owner(accounts.reselling_state, &program_id).unwrap();
+        check_account_owner(accounts.reselling_state, program_id).unwrap();
         check_account_key(
             accounts.destination_token,
             &Pubkey::new(&reselling_state.token_destination_account),
@@ -214,7 +214,7 @@ pub fn process_claim(
                     accounts.naming_service_program,
                     accounts.central_state,
                     accounts.name,
-                    &accounts.bidder_wallet.key,
+                    accounts.bidder_wallet.key,
                     Some(central_state_signer_seeds),
                 )?;
                 return Ok(());
@@ -227,7 +227,7 @@ pub fn process_claim(
             accounts.naming_service_program,
             accounts.central_state,
             accounts.name,
-            &accounts.bidder_wallet.key,
+            accounts.bidder_wallet.key,
             Some(central_state_signer_seeds),
         )?;
 

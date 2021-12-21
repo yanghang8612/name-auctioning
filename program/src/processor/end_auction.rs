@@ -69,7 +69,7 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
 
         // Params check and derivations
         let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + &name).as_bytes()])
-            .0
+            .as_ref()
             .to_vec();
 
         if hashed_name.len() != 32 {
@@ -134,10 +134,10 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
 
         // Ownership checks
         check_account_owner(accounts.auction, spl_auction_id).unwrap();
-        check_account_owner(accounts.central_state, &program_id).unwrap();
-        check_account_owner(accounts.state, &program_id).unwrap();
+        check_account_owner(accounts.central_state, program_id).unwrap();
+        check_account_owner(accounts.state, program_id).unwrap();
         check_account_owner(accounts.root_domain, &spl_name_service::id()).unwrap();
-        check_account_owner(accounts.reselling_state, &program_id).unwrap();
+        check_account_owner(accounts.reselling_state, program_id).unwrap();
 
         Ok((accounts, bids_empty, signer_seeds, derived_signer_nonce))
     }
@@ -160,7 +160,7 @@ pub fn process_end_auction(
         accounts.auction,
         accounts.clock_sysvar,
         *accounts.name.key,
-        &signer_seeds,
+        signer_seeds,
     )?;
 
     let central_state_nonce = accounts.central_state.data.borrow()[0];

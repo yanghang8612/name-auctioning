@@ -69,7 +69,7 @@ pub fn process_reset_auction(program_id: &Pubkey, accounts: &[AccountInfo]) -> P
         accounts.auction,
         accounts.state,
         *accounts.name.key,
-        &signer_seeds,
+        signer_seeds,
     )?;
     Ok(())
 }

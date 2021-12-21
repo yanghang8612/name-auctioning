@@ -107,7 +107,7 @@ pub fn process_a_claim(
             accounts.naming_service_program,
             accounts.central_state,
             accounts.name,
-            &accounts.new_name_owner.key,
+            accounts.new_name_owner.key,
             Some(central_state_signer_seeds),
         )?;
     }
