@@ -44,7 +44,7 @@ export const ROOT_DOMAIN_ACCOUNT = new PublicKey(
 );
 
 export const PYTH_FIDDA_PRICE_ACC = new PublicKey(
-  '3QmhYpfwHdzckrxBcegosSK5sVb3Fr4LSk25yF6s4Wfz'
+  'ETp9eKXVv1dWwHSpsXRUuXHmw24PwRkttCGVgpZEY9zF'
 );
 
 // const SLOT_SIZE = 33;

@@ -233,7 +233,6 @@ pub fn process_create(
     }
 
     msg!("Setting up auction");
-    solana_program::log::sol_log_compute_units();
 
     let min_price_fida = fp32_div(
         MINIMUM_PRICE_USD,
@@ -254,8 +253,6 @@ pub fn process_create(
         signer_seeds,
         None,
     )?;
-
-    solana_program::log::sol_log_compute_units();
 
     msg!("Starting auction");
 

@@ -42,7 +42,7 @@ pub const BONFIDA_SOL_VAULT: &str = "GcWEQ9K78FV7LEHteFVciYApERk5YvQuFDQPk1yYJVX
 pub const ADMIN_CREATE_KEY: &str = "CHG6XM8Ugk7xkZMcp5PMoJTYfwCG7XStv5rt2w1eQKPS";
 pub const BONFIDA_USDC_VAULT: &str = "DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7";
 pub const ADMIN_CLAIM_KEY: &str = "VBx642K1hYGLU5Zm1CHW1uRXAtFgxN5mRqyMcXnLZFW";
-pub const PYTH_FIDA_PRICE_ACC: &str = "3QmhYpfwHdzckrxBcegosSK5sVb3Fr4LSk25yF6s4Wfz"; //TODO switch to mainnet
+pub const PYTH_FIDA_PRICE_ACC: &str = "ETp9eKXVv1dWwHSpsXRUuXHmw24PwRkttCGVgpZEY9zF";
 
 // Fees taken for the reselling of domain names
 // | Tier | Percentage of payout    | Requirements   |
