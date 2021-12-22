@@ -71,10 +71,7 @@ impl Cpi {
         signer_seeds: &[&[u8]],
         max_price: Option<u64>,
     ) -> ProgramResult {
-        let buy_now_pubkey: Option<Pubkey> = match buy_now_account {
-            Some(account) => Some(*account.key),
-            None => None,
-        };
+        let buy_now_pubkey: Option<Pubkey> = buy_now_account.map(|account| *account.key);
 
         let create_auction_instruction = create_auction_instruction(
             *auction_program.key,

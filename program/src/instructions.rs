@@ -395,6 +395,7 @@ pub fn reset_auction(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn create_admin(
     program_id: Pubkey,
     fee_payer: Pubkey,
@@ -482,6 +483,7 @@ pub fn admin_claim(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn end_auction(
     program_id: Pubkey,
     root_domain: Pubkey,
