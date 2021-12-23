@@ -623,3 +623,123 @@ export class createReverseInstruction {
     });
   }
 }
+
+export class endAuctionInstruction {
+  tag: number;
+  name: string;
+
+  static schema: Schema = new Map([
+    [
+      endAuctionInstruction,
+      {
+        kind: 'struct',
+        fields: [
+          ['tag', 'u8'],
+          ['name', 'string'],
+        ],
+      },
+    ],
+  ]);
+
+  constructor(obj: { name: string }) {
+    this.tag = 8;
+    this.name = obj.name;
+  }
+
+  serialize(): Uint8Array {
+    return serialize(endAuctionInstruction.schema, this);
+  }
+
+  getInstruction(
+    programId: PublicKey,
+    rentSysvarAccount: PublicKey,
+    nameProgramId: PublicKey,
+    rootDomain: PublicKey,
+    nameAccount: PublicKey,
+    auctionProgram: PublicKey,
+    auction: PublicKey,
+    centralState: PublicKey,
+    state: PublicKey,
+    auctionCreator: PublicKey,
+    resellingState: PublicKey,
+    destinationToken: PublicKey,
+    bonfidaSolVault: PublicKey,
+    systemProgram: PublicKey
+  ): TransactionInstruction {
+    const data = Buffer.from(this.serialize());
+
+    const keys = [
+      {
+        pubkey: rentSysvarAccount,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: nameProgramId,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: rootDomain,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: nameAccount,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: auctionProgram,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: auction,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: centralState,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: state,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: auctionCreator,
+        isSigner: true,
+        isWritable: true,
+      },
+      {
+        pubkey: resellingState,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: destinationToken,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: bonfidaSolVault,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: systemProgram,
+        isSigner: false,
+        isWritable: false,
+      },
+    ];
+
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+}

@@ -16,6 +16,7 @@ import {
   createReverseInstruction,
   initInstruction,
   resellInstruction,
+  endAuctionInstruction,
 } from './instructions';
 import BN from 'bn.js';
 import { NameAuction } from './state';
@@ -355,3 +356,46 @@ export async function createReverseName(
 
   return [[], instructions];
 }
+
+export const endAuction = async (
+  name: string,
+  rootDomain: PublicKey,
+  nameAccount: PublicKey,
+  auctionAccount: PublicKey,
+  auctionCreator: PublicKey,
+  destinationTokenAccount: PublicKey
+) => {
+  let [centralState] = await PublicKey.findProgramAddress(
+    [PROGRAM_ID.toBuffer()],
+    PROGRAM_ID
+  );
+
+  let [stateAccount] = await PublicKey.findProgramAddress(
+    [nameAccount.toBuffer()],
+    PROGRAM_ID
+  );
+
+  let [resellingStateAccount] = await PublicKey.findProgramAddress(
+    [nameAccount.toBuffer(), Buffer.from([1, 1])],
+    PROGRAM_ID
+  );
+
+  const ix = new endAuctionInstruction({ name }).getInstruction(
+    PROGRAM_ID,
+    SYSVAR_RENT_PUBKEY,
+    NAMING_SERVICE_PROGRAM_ID,
+    rootDomain,
+    nameAccount,
+    AUCTION_PROGRAM_ID,
+    auctionAccount,
+    centralState,
+    stateAccount,
+    auctionCreator,
+    resellingStateAccount,
+    destinationTokenAccount,
+    BONFIDA_SOL_VAULT,
+    SystemProgram.programId
+  );
+
+  return [[], [ix]];
+};
