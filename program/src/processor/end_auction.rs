@@ -47,7 +47,7 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
         program_id: &Pubkey,
         accounts: &'a [AccountInfo<'b>],
         name: String,
-    ) -> Result<(Accounts<'a, 'b>, bool, [u8; 32], u8), ProgramError> {
+    ) -> Result<(Accounts<'a, 'b>, [u8; 32], u8), ProgramError> {
         let accounts_iter = &mut accounts.iter();
         let accounts = Accounts {
             clock_sysvar: next_account_info(accounts_iter)?,
@@ -110,6 +110,11 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
             _ => unreachable!(),
         };
 
+        if !bids_empty {
+            msg!("Cannot cancel auctions with bids");
+            return Err(ProgramError::InvalidArgument);
+        }
+
         // Key checks
         check_account_key(accounts.clock_sysvar, &sysvar::clock::id()).unwrap();
         check_account_key(accounts.naming_service_program, &spl_name_service::id()).unwrap();
@@ -139,7 +144,7 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
         check_account_owner(accounts.root_domain, &spl_name_service::id()).unwrap();
         check_account_owner(accounts.reselling_state, program_id).unwrap();
 
-        Ok((accounts, bids_empty, signer_seeds, derived_signer_nonce))
+        Ok((accounts, signer_seeds, derived_signer_nonce))
     }
 }
 
@@ -148,7 +153,7 @@ pub fn process_end_auction(
     accounts: &[AccountInfo],
     name: String,
 ) -> ProgramResult {
-    let (accounts, bids_empty, signer_seeds, derived_signer_nonce) =
+    let (accounts, signer_seeds, derived_signer_nonce) =
         Accounts::parse(program_id, accounts, name)?;
 
     let signer_seeds: &[&[u8]] = &[&signer_seeds, &[derived_signer_nonce]];
@@ -175,23 +180,20 @@ pub fn process_end_auction(
         Some(central_state_signer_seeds),
     )?;
 
-    // Charge a 0.5 SOL fee for users cancelling auctions without bids
-    if bids_empty {
-        msg!("The auction has no bid");
-        let fee_instruction = system_instruction::transfer(
-            accounts.auction_creator.key,
-            accounts.bonfida_sol_vault.key,
-            (LAMPORTS_PER_SOL / 2) as u64,
-        );
-        invoke(
-            &fee_instruction,
-            &[
-                accounts.system_program.clone(),
-                accounts.auction_creator.clone(),
-                accounts.bonfida_sol_vault.clone(),
-            ],
-        )?;
-    }
+    // Charge a 0.5 SOL fee for users cancelling auctions
+    let fee_instruction = system_instruction::transfer(
+        accounts.auction_creator.key,
+        accounts.bonfida_sol_vault.key,
+        (LAMPORTS_PER_SOL / 2) as u64,
+    );
+    invoke(
+        &fee_instruction,
+        &[
+            accounts.system_program.clone(),
+            accounts.auction_creator.clone(),
+            accounts.bonfida_sol_vault.clone(),
+        ],
+    )?;
 
     Ok(())
 }
