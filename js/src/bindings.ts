@@ -386,7 +386,7 @@ export const endAuction = async (
 
   const ix = new endAuctionInstruction({ name }).getInstruction(
     PROGRAM_ID,
-    SYSVAR_RENT_PUBKEY,
+    SYSVAR_CLOCK_PUBKEY,
     NAMING_SERVICE_PROGRAM_ID,
     rootDomain,
     nameAccount,

@@ -658,7 +658,7 @@ export class endAuctionInstruction {
 
   getInstruction(
     programId: PublicKey,
-    rentSysvarAccount: PublicKey,
+    clockSysvarAccount: PublicKey,
     nameProgramId: PublicKey,
     rootDomain: PublicKey,
     nameAccount: PublicKey,
@@ -676,7 +676,7 @@ export class endAuctionInstruction {
 
     const keys = [
       {
-        pubkey: rentSysvarAccount,
+        pubkey: clockSysvarAccount,
         isSigner: false,
         isWritable: false,
       },
