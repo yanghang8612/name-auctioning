@@ -168,25 +168,27 @@ impl Cpi {
             },
         );
 
-        invoke_signed(
-            &claim_auction_instruction,
-            &[
-                auction_program.clone(),
-                destination_token_account.clone(),
-                winner_pot_token_account.clone(),
-                winner_pot_account.clone(),
-                authority.clone(),
-                auction_account.clone(),
-                winner_account.clone(),
-                quote_mint.clone(),
-                clock_sysvar_account.clone(),
-                spl_token_program.clone(),
-                bonfida_vault.clone(),
-                buy_now.clone(),
-                bonfida_sol_vault.clone(),
-            ],
-            &[signer_seeds],
-        )
+        let mut accounts = vec![
+            auction_program.clone(),
+            destination_token_account.clone(),
+            winner_pot_token_account.clone(),
+            winner_pot_account.clone(),
+            authority.clone(),
+            auction_account.clone(),
+            winner_account.clone(),
+            quote_mint.clone(),
+            clock_sysvar_account.clone(),
+            spl_token_program.clone(),
+            bonfida_vault.clone(),
+            buy_now.clone(),
+            bonfida_sol_vault.clone(),
+        ];
+
+        if let Some(referrer) = referrer {
+            accounts.push(referrer.clone());
+        }
+
+        invoke_signed(&claim_auction_instruction, &accounts, &[signer_seeds])
     }
 
     #[allow(clippy::too_many_arguments)]
