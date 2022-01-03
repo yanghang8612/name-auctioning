@@ -184,7 +184,7 @@ pub fn process_end_auction(
     let fee_instruction = system_instruction::transfer(
         accounts.auction_creator.key,
         accounts.bonfida_sol_vault.key,
-        (LAMPORTS_PER_SOL / 2) as u64,
+        (LAMPORTS_PER_SOL / 10) as u64,
     );
     invoke(
         &fee_instruction,
