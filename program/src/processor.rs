@@ -3,8 +3,8 @@ use crate::{
     processor::{
         admin_claim::process_a_claim, claim::process_claim, create::process_create,
         create_admin::process_create_admin, create_reverse::process_create_reverse,
-        end_auction::process_end_auction, init::process_init, resell::process_resell,
-        reset_auction::process_reset_auction,
+        create_v2::process_create_v2, end_auction::process_end_auction, init::process_init,
+        resell::process_resell, reset_auction::process_reset_auction,
     },
 };
 use borsh::BorshDeserialize;
@@ -18,6 +18,7 @@ pub mod claim;
 pub mod create;
 pub mod create_admin;
 pub mod create_reverse;
+pub mod create_v2;
 pub mod end_auction;
 pub mod init;
 pub mod resell;
@@ -131,6 +132,10 @@ impl Processor {
             ProgramInstruction::EndAuction { name } => {
                 msg!("Instruction: End Auction");
                 process_end_auction(program_id, accounts, name)?;
+            }
+            ProgramInstruction::CreateV2 { name, space } => {
+                msg!("Instruction: Create v2");
+                process_create_v2(program_id, accounts, name, space)?;
             }
         }
         Ok(())

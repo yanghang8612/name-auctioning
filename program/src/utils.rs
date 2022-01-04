@@ -386,3 +386,15 @@ pub fn check_signer(account: &AccountInfo) -> ProgramResult {
     }
     Ok(())
 }
+
+pub fn get_usd_price(len: usize) -> u64 {
+    let multiplier = match len {
+        1 => 70,
+        2 => 60,
+        3 => 50,
+        4 => 40,
+        5 => 30,
+        _ => 20,
+    };
+    multiplier * 1_000_000
+}

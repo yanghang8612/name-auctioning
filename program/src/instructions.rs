@@ -9,7 +9,7 @@ use solana_program::{
 
 pub use crate::processor::create_admin;
 use crate::processor::{
-    BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, PYTH_FIDA_PRICE_ACC,
+    BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, PYTH_FIDA_PRICE_ACC, FIDA_MINT
 };
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
@@ -174,6 +174,29 @@ pub enum ProgramInstruction {
     ///
     EndAuction {
         name: String,
+    },
+
+    /// Create v2
+    /// Accounts expected by this instruction:
+    ///
+    /// | Index | Writable | Signer | Description                   |
+    /// |-------|----------|--------|-------------------------------|
+    /// | 0     | ❌        | ❌      | The rent sysvar account       |
+    /// | 1     | ❌        | ❌      | The naming service program ID |
+    /// | 2     | ❌        | ❌      | The root domain account       |
+    /// | 3     | ✅        | ❌      | The name account              |
+    /// | 4     | ✅        | ❌      | The reverse look up account   |
+    /// | 5     | ❌        | ❌      | The system program account    |
+    /// | 6     | ❌        | ❌      | The central state account     |
+    /// | 7     | ✅        | ✅      | The buyer account             |
+    /// | 8     | ✅        | ❌      | The buyer token account       |
+    /// | 9     | ❌        | ❌      | The quote mint account        |
+    /// | 10    | ❌        | ❌      | The Pyth FIDA price account   |
+    /// | 11    | ✅        | ❌      | The FIDA vault account        |
+    /// | 12    | ❌        | ❌      | The SPL token program         |
+    CreateV2 {
+        name: String,
+        space: u32,
     },
 }
 
@@ -518,6 +541,45 @@ pub fn end_auction(
         AccountMeta::new(destination_token, false),
         AccountMeta::new(Pubkey::from_str(BONFIDA_SOL_VAULT).unwrap(), false),
         AccountMeta::new(system_program::id(), false),
+    ];
+
+    Instruction {
+        program_id,
+        accounts,
+        data,
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn create_v2(
+    program_id: Pubkey,
+    root_domain: Pubkey,
+    name_account: Pubkey,
+    reverse_lookup: Pubkey,
+    central_state: Pubkey,
+    buyer: Pubkey,
+    buyer_token_source: Pubkey,
+    pyth_fida_price_acc: Pubkey,
+    name: String,
+    space: u32,
+) -> Instruction {
+    let data = ProgramInstruction::CreateV2 { name, space }
+        .try_to_vec()
+        .unwrap();
+    let accounts = vec![
+        AccountMeta::new_readonly(sysvar::rent::id(), false),
+        AccountMeta::new_readonly(spl_name_service::id(), false),
+        AccountMeta::new_readonly(root_domain, false),
+        AccountMeta::new(name_account, false),
+        AccountMeta::new(reverse_lookup, false),
+        AccountMeta::new_readonly(system_program::id(), false),
+        AccountMeta::new_readonly(central_state, false),
+        AccountMeta::new(buyer, true),
+        AccountMeta::new(buyer_token_source, false),
+        AccountMeta::new_readonly(Pubkey::from_str(FIDA_MINT).unwrap(), false),
+        AccountMeta::new_readonly(pyth_fida_price_acc, false),
+        AccountMeta::new(Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(), false),
+        AccountMeta::new_readonly(spl_token::ID, false),
     ];
 
     Instruction {
