@@ -32,7 +32,6 @@ struct Accounts<'a, 'b: 'a> {
     central_state: &'a AccountInfo<'b>,
     buyer: &'a AccountInfo<'b>,
     buyer_token_source: &'a AccountInfo<'b>,
-    quote_mint: &'a AccountInfo<'b>,
     pyth_fida_price_acc: &'a AccountInfo<'b>,
     fida_vault: &'a AccountInfo<'b>,
     spl_token_program: &'a AccountInfo<'b>,
@@ -53,7 +52,6 @@ fn parse_accounts<'a, 'b: 'a>(
         central_state: next_account_info(accounts_iter)?,
         buyer: next_account_info(accounts_iter)?,
         buyer_token_source: next_account_info(accounts_iter)?,
-        quote_mint: next_account_info(accounts_iter)?,
         pyth_fida_price_acc: next_account_info(accounts_iter)?,
         fida_vault: next_account_info(accounts_iter)?,
         spl_token_program: next_account_info(accounts_iter)?,
@@ -68,7 +66,6 @@ fn parse_accounts<'a, 'b: 'a>(
     )
     .unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
-    check_account_key(a.quote_mint, &Pubkey::from_str(FIDA_MINT).unwrap()).unwrap();
     check_account_key(
         a.pyth_fida_price_acc,
         &Pubkey::from_str(PYTH_FIDA_PRICE_ACC).unwrap(),

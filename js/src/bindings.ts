@@ -17,6 +17,7 @@ import {
   initInstruction,
   resellInstruction,
   endAuctionInstruction,
+  createV2Instruction,
 } from './instructions';
 import BN from 'bn.js';
 import { NameAuction } from './state';
@@ -399,6 +400,34 @@ export const endAuction = async (
     destinationTokenAccount,
     BONFIDA_SOL_VAULT,
     SystemProgram.programId
+  );
+
+  return [[], [ix]];
+};
+
+export const createV2 = async (
+  name: string,
+  space: number,
+  nameAccount: PublicKey,
+  reverseLookupAccount: PublicKey,
+  buyer: PublicKey,
+  buyerTokenAccount: PublicKey
+) => {
+  let [centralState] = await PublicKey.findProgramAddress(
+    [PROGRAM_ID.toBuffer()],
+    PROGRAM_ID
+  );
+  const ix = new createV2Instruction({ name, space }).getInstruction(
+    PROGRAM_ID,
+    SYSVAR_RENT_PUBKEY,
+    NAMING_SERVICE_PROGRAM_ID,
+    ROOT_DOMAIN_ACCOUNT,
+    nameAccount,
+    reverseLookupAccount,
+    centralState,
+    buyer,
+    buyerTokenAccount,
+    BONFIDA_FIDA_BNB
   );
 
   return [[], [ix]];
