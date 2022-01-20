@@ -10,12 +10,13 @@ use solana_program::{
     msg,
     program::invoke,
     program_error::ProgramError,
+    program_pack::Pack,
     pubkey::Pubkey,
     rent::Rent,
     system_program,
     sysvar::{self, Sysvar},
 };
-use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
+use spl_name_service::state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX};
 use spl_token::instruction::transfer;
 
 use super::{PYTH_FIDA_PRICE_ACC, ROOT_DOMAIN_ACCOUNT};
@@ -175,7 +176,7 @@ pub fn process_create_v2(
         accounts.root_domain,
         accounts.central_state,
         hashed_name,
-        rent.minimum_balance(space as usize),
+        rent.minimum_balance(NameRecordHeader::LEN + space as usize),
         space,
         central_state_signer_seeds,
     )?;
