@@ -804,11 +804,6 @@ export class createV2Instruction {
         isWritable: false,
       },
       {
-        pubkey: rentSysvarAccount,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
         pubkey: nameProgramId,
         isSigner: false,
         isWritable: false,
@@ -847,6 +842,11 @@ export class createV2Instruction {
         pubkey: buyerTokenAccount,
         isSigner: false,
         isWritable: true,
+      },
+      {
+        pubkey: PYTH_FIDDA_PRICE_ACC,
+        isSigner: false,
+        isWritable: false,
       },
       {
         pubkey: fidaVault,
