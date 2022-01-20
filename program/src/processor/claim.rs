@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     borsh::try_from_slice_unchecked,
@@ -80,29 +78,22 @@ fn parse_accounts<'a, 'b: 'a>(
         bonfida_sol_vault: next_account_info(accounts_iter)?,
         referrer: next_account_info(accounts_iter).ok(),
     };
-    let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
     check_account_key(a.spl_token_program, &spl_token::id()).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
-    check_account_key(a.auction_program, spl_auction_id).unwrap();
-    check_account_owner(a.auction, spl_auction_id).unwrap();
+    check_account_key(a.auction_program, &AUCTION_PROGRAM_ID).unwrap();
+    check_account_owner(a.auction, &AUCTION_PROGRAM_ID).unwrap();
     check_account_owner(a.central_state, program_id).unwrap();
     check_account_owner(a.state, program_id).unwrap();
     // check_signer(a.bidder_wallet).unwrap();
-    if a.bonfida_vault.key != &Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap()
-        && a.bonfida_vault.key != &Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap()
-    {
+    if a.bonfida_vault.key != &BONFIDA_FIDA_VAULT && a.bonfida_vault.key != &BONFIDA_USDC_VAULT {
         msg!("Wrong Bonfida vault address");
         return Err(ProgramError::InvalidArgument);
     };
 
-    check_account_key(
-        a.bonfida_sol_vault,
-        &Pubkey::from_str(BONFIDA_SOL_VAULT).unwrap(),
-    )
-    .unwrap();
+    check_account_key(a.bonfida_sol_vault, &BONFIDA_SOL_VAULT).unwrap();
 
     Ok(a)
 }
@@ -148,17 +139,9 @@ pub fn process_claim(
     let mut fee_percentage = 0;
     if accounts.name.data_is_empty() {
         check_signer(accounts.bidder_wallet).unwrap();
-        check_account_key(
-            accounts.destination_token,
-            &Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(),
-        )
-        .or_else(|_| {
-            check_account_key(
-                accounts.destination_token,
-                &Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(),
-            )
-        })
-        .unwrap();
+        check_account_key(accounts.destination_token, &BONFIDA_FIDA_VAULT)
+            .or_else(|_| check_account_key(accounts.destination_token, &BONFIDA_USDC_VAULT))
+            .unwrap();
         Cpi::create_name_account(
             accounts.naming_service_program,
             accounts.system_program,
@@ -240,7 +223,7 @@ pub fn process_claim(
                 msg!("Fida discount owner does not match destination owner.");
                 return Err(ProgramError::InvalidArgument);
             }
-            if discount_data.mint.to_string() != FIDA_MINT {
+            if discount_data.mint != FIDA_MINT {
                 msg!("The discount account should be a FIDA token account");
                 return Err(ProgramError::InvalidArgument);
             }

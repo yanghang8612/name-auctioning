@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::{
     processor::BONFIDA_FIDA_VAULT,
     utils::{check_account_key, check_account_owner, check_signer, get_usd_price, Cpi},
@@ -20,7 +18,7 @@ use solana_program::{
 use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
 use spl_token::instruction::transfer;
 
-use super::{FIDA_MINT, PYTH_FIDA_PRICE_ACC, ROOT_DOMAIN_ACCOUNT};
+use super::{PYTH_FIDA_PRICE_ACC, ROOT_DOMAIN_ACCOUNT};
 
 struct Accounts<'a, 'b: 'a> {
     rent_sysvar: &'a AccountInfo<'b>,
@@ -60,18 +58,10 @@ fn parse_accounts<'a, 'b: 'a>(
     // Check keys
     check_account_key(a.rent_sysvar, &sysvar::rent::id()).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
-    check_account_key(
-        a.root_domain,
-        &Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
-    )
-    .unwrap();
+    check_account_key(a.root_domain, &ROOT_DOMAIN_ACCOUNT).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
-    check_account_key(
-        a.pyth_fida_price_acc,
-        &Pubkey::from_str(PYTH_FIDA_PRICE_ACC).unwrap(),
-    )
-    .unwrap();
-    check_account_key(a.fida_vault, &Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap()).unwrap();
+    check_account_key(a.pyth_fida_price_acc, &PYTH_FIDA_PRICE_ACC).unwrap();
+    check_account_key(a.fida_vault, &BONFIDA_FIDA_VAULT).unwrap();
     check_account_key(a.spl_token_program, &spl_token::ID).unwrap();
 
     // Check ownership

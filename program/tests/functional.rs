@@ -38,7 +38,7 @@ async fn test() {
         // processor!(name_auctioning::entrypoint::process_instruction),
         None,
     );
-    let auction_program_id = Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
+    let auction_program_id = AUCTION_PROGRAM_ID;
     program_test.add_program(
         "spl_name_service",
         spl_name_service::id(),
@@ -62,7 +62,7 @@ async fn test() {
     .pack_into_slice(&mut mint_data);
 
     program_test.add_account(
-        Pubkey::from_str(TOKEN_MINT).unwrap(),
+        TOKEN_MINT,
         Account {
             lamports: 1_000_000,
             data: mint_data,
@@ -74,7 +74,7 @@ async fn test() {
 
     let mut vault_data = vec![0u8; spl_token::state::Account::LEN];
     spl_token::state::Account {
-        mint: Pubkey::from_str(TOKEN_MINT).unwrap(),
+        mint: TOKEN_MINT,
         owner: bonfida_vault_owner.pubkey(),
         amount: 0,
         delegate: COption::None,
@@ -86,7 +86,7 @@ async fn test() {
     .pack_into_slice(&mut vault_data);
 
     program_test.add_account(
-        Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(),
+        BONFIDA_FIDA_VAULT,
         Account {
             lamports: 1_000_000,
             data: vault_data,
@@ -108,7 +108,7 @@ async fn test() {
     .unwrap();
 
     program_test.add_account(
-        Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
+        ROOT_DOMAIN_ACCOUNT,
         Account {
             lamports: 1_000_000,
             data: root_domain_data,
@@ -141,7 +141,7 @@ async fn test() {
         .await
         .unwrap();
 
-    let root_name_account_key = Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap();
+    let root_name_account_key = ROOT_DOMAIN_ACCOUNT;
 
     let name_record_header = NameRecordHeader::unpack_from_slice(
         &ctx.banks_client
@@ -228,7 +228,7 @@ async fn test() {
         derived_central_state_key,
         derived_state_key,
         ctx.payer.pubkey(),
-        Pubkey::from_str(TOKEN_MINT).unwrap(),
+        TOKEN_MINT,
         test_name.to_owned(),
     );
 
@@ -255,7 +255,7 @@ async fn test_resell() {
     let mint_authority = Keypair::new();
     let bonfida_vault_owner = Keypair::new();
     let mut program_test = ProgramTest::new("name_auctioning", program_id, None);
-    let auction_program_id = Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
+    let auction_program_id = AUCTION_PROGRAM_ID;
     program_test.add_program("spl_name_service", spl_name_service::id(), None);
     program_test.add_program("spl_auction", auction_program_id, None);
 
@@ -270,7 +270,7 @@ async fn test_resell() {
     .pack_into_slice(&mut mint_data);
 
     program_test.add_account(
-        Pubkey::from_str(TOKEN_MINT).unwrap(),
+        TOKEN_MINT,
         Account {
             lamports: 1_000_000,
             data: mint_data,
@@ -282,7 +282,7 @@ async fn test_resell() {
 
     let mut vault_data = vec![0u8; spl_token::state::Account::LEN];
     spl_token::state::Account {
-        mint: Pubkey::from_str(TOKEN_MINT).unwrap(),
+        mint: TOKEN_MINT,
         owner: bonfida_vault_owner.pubkey(),
         amount: 0,
         delegate: COption::None,
@@ -294,7 +294,7 @@ async fn test_resell() {
     .pack_into_slice(&mut vault_data);
 
     program_test.add_account(
-        Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(),
+        BONFIDA_FIDA_VAULT,
         Account {
             lamports: 1_000_000,
             data: vault_data,
@@ -317,10 +317,10 @@ async fn test_resell() {
     .try_to_vec()
     .unwrap();
 
-    let root_name_account_key = Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap();
+    let root_name_account_key = ROOT_DOMAIN_ACCOUNT;
 
     program_test.add_account(
-        Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
+        ROOT_DOMAIN_ACCOUNT,
         Account {
             lamports: 1_000_000,
             data: root_domain_data,
@@ -424,12 +424,7 @@ async fn test_resell() {
     // Create destination account
     let destination_account = Keypair::new();
 
-    create_token_account(
-        &mut ctx,
-        &Pubkey::from_str(FIDA_MINT).unwrap(),
-        &destination_account,
-    )
-    .await;
+    create_token_account(&mut ctx, &FIDA_MINT, &destination_account).await;
 
     let resell_naming_auction_instruction = resell(
         program_id,

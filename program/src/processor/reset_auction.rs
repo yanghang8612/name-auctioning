@@ -6,7 +6,6 @@ use solana_program::{
     pubkey::Pubkey,
     sysvar,
 };
-use std::str::FromStr;
 
 use crate::utils::{check_account_key, check_account_owner, check_signer, Cpi};
 
@@ -35,14 +34,13 @@ fn parse_accounts<'a, 'b: 'a>(
         state: next_account_info(accounts_iter)?,
     };
 
-    let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
-    check_account_key(a.auction_program, spl_auction_id).unwrap();
+    check_account_key(a.auction_program, &AUCTION_PROGRAM_ID).unwrap();
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
-    check_account_owner(a.auction, spl_auction_id).unwrap();
+    check_account_owner(a.auction, &AUCTION_PROGRAM_ID).unwrap();
     check_account_owner(a.state, program_id).unwrap();
 
     #[cfg(not(feature = "no-admin"))]
-    check_account_key(a.admin, &Pubkey::from_str(ADMIN).unwrap()).unwrap();
+    check_account_key(a.admin, &ADMIN).unwrap();
     check_signer(a.admin).unwrap();
 
     Ok(a)

@@ -1,7 +1,5 @@
 // Used to by pass the auction mechanism in order to reserve domain names for Solana ecosystem projects and prevent squatting
 
-use std::str::FromStr;
-
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
@@ -52,14 +50,10 @@ fn parse_accounts<'a, 'b: 'a>(
     };
     check_signer(accounts.fee_payer)?;
     check_signer(accounts.admin)?;
-    check_account_key(accounts.admin, &Pubkey::from_str(ADMIN_CREATE_KEY).unwrap()).unwrap();
+    check_account_key(accounts.admin, &ADMIN_CREATE_KEY).unwrap();
     check_account_key(accounts.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_owner(accounts.root_domain, &spl_name_service::id()).unwrap();
-    check_account_key(
-        accounts.root_domain,
-        &Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
-    )
-    .unwrap();
+    check_account_key(accounts.root_domain, &ROOT_DOMAIN_ACCOUNT).unwrap();
     check_account_owner(accounts.central_state, program_id).unwrap();
     check_account_key(accounts.system_program, &system_program::id()).unwrap();
     check_account_key(accounts.rent_sysvar, &sysvar::rent::id()).unwrap();

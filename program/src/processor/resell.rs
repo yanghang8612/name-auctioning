@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use borsh::BorshSerialize;
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
@@ -77,11 +75,7 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
     check_account_owner(a.central_state, program_id).unwrap();
-    check_account_key(
-        a.auction_program,
-        &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap(),
-    )
-    .unwrap();
+    check_account_key(a.auction_program, &AUCTION_PROGRAM_ID).unwrap();
     // check_account_owner(a.auction, &spl_auction::id()).unwrap();
     check_account_owner(a.state, &system_program::id())
         .or_else(|_| check_account_owner(a.state, program_id))
@@ -131,7 +125,7 @@ pub fn process_resell(
     }
     let token_destination_account =
         Account::unpack(&accounts.token_destination_account.data.borrow())?;
-    if Pubkey::from_str(TOKEN_MINT).unwrap() != token_destination_account.mint {
+    if TOKEN_MINT != token_destination_account.mint {
         msg!("Destination token account is not of the right mint.");
         return Err(ProgramError::InvalidArgument);
     }
@@ -254,7 +248,7 @@ pub fn process_resell(
 
     let state = NameAuction {
         status: NameAuctionStatus::SecondaryAuction,
-        quote_mint: Pubkey::from_str(TOKEN_MINT).unwrap().to_bytes(),
+        quote_mint: TOKEN_MINT.to_bytes(),
         signer_nonce: derived_reselling_signer_nonce,
         auction_account: accounts.auction.key.to_bytes(),
     };

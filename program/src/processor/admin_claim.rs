@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     borsh::try_from_slice_unchecked,
@@ -63,7 +61,7 @@ fn parse_accounts<'a, 'b: 'a>(
         root_domain: next_account_info(accounts_iter)?,
     };
     check_signer(a.admin_signer).unwrap();
-    check_account_key(a.admin_signer, &Pubkey::from_str(ADMIN_CLAIM_KEY).unwrap()).unwrap();
+    check_account_key(a.admin_signer, &ADMIN_CLAIM_KEY).unwrap();
 
     Ok(a)
 }

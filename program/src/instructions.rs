@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     instruction::{AccountMeta, Instruction},
@@ -9,7 +7,7 @@ use solana_program::{
 
 pub use crate::processor::create_admin;
 use crate::processor::{
-    BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, PYTH_FIDA_PRICE_ACC, FIDA_MINT
+    BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, FIDA_MINT, PYTH_FIDA_PRICE_ACC,
 };
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
@@ -251,7 +249,7 @@ pub fn create(
         AccountMeta::new(state_account, false),
         AccountMeta::new(fee_payer, true),
         AccountMeta::new(quote_mint, false),
-        AccountMeta::new_readonly(Pubkey::from_str(PYTH_FIDA_PRICE_ACC).unwrap(), false),
+        AccountMeta::new_readonly(PYTH_FIDA_PRICE_ACC, false),
     ];
     Instruction {
         program_id,
@@ -334,7 +332,7 @@ pub fn claim(
         AccountMeta::new_readonly(bidder_wallet, true),
         AccountMeta::new(bidder_pot, false),
         AccountMeta::new(bidder_pot_token, false),
-        AccountMeta::new(Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(), false),
+        AccountMeta::new(BONFIDA_FIDA_VAULT, false),
         AccountMeta::new_readonly(discount_account, false),
         AccountMeta::new(buy_now, false),
         AccountMeta::new(bonfida_sol_vault, false),
@@ -496,7 +494,7 @@ pub fn admin_claim(
         AccountMeta::new_readonly(bidder_wallet, false),
         AccountMeta::new(bidder_pot, false),
         AccountMeta::new(bidder_pot_token, false),
-        AccountMeta::new(Pubkey::from_str(BONFIDA_USDC_VAULT).unwrap(), false),
+        AccountMeta::new(BONFIDA_USDC_VAULT, false),
         AccountMeta::new_readonly(admin, true),
         AccountMeta::new_readonly(new_name_owner, false),
         AccountMeta::new(fee_payer, true),
@@ -539,7 +537,7 @@ pub fn end_auction(
         AccountMeta::new(auction_creator, true),
         AccountMeta::new(reselling_state, false),
         AccountMeta::new(destination_token, false),
-        AccountMeta::new(Pubkey::from_str(BONFIDA_SOL_VAULT).unwrap(), false),
+        AccountMeta::new(BONFIDA_SOL_VAULT, false),
         AccountMeta::new(system_program::id(), false),
     ];
 
@@ -576,9 +574,9 @@ pub fn create_v2(
         AccountMeta::new_readonly(central_state, false),
         AccountMeta::new(buyer, true),
         AccountMeta::new(buyer_token_source, false),
-        AccountMeta::new_readonly(Pubkey::from_str(FIDA_MINT).unwrap(), false),
+        AccountMeta::new_readonly(FIDA_MINT, false),
         AccountMeta::new_readonly(pyth_fida_price_acc, false),
-        AccountMeta::new(Pubkey::from_str(BONFIDA_FIDA_VAULT).unwrap(), false),
+        AccountMeta::new(BONFIDA_FIDA_VAULT, false),
         AccountMeta::new_readonly(spl_token::ID, false),
     ];
 

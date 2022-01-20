@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use bonfida_utils::{fp_math::fp32_div, pyth::get_oracle_price_fp32};
 use borsh::BorshSerialize;
 use solana_program::{
@@ -74,27 +72,15 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
     check_account_owner(a.central_state, program_id).unwrap();
-    check_account_key(
-        a.auction_program,
-        &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap(),
-    )
-    .unwrap();
+    check_account_key(a.auction_program, &AUCTION_PROGRAM_ID).unwrap();
     // check_account_owner(a.auction, &spl_auction::id()).unwrap();
     check_account_owner(a.state, &system_program::id())
         .or_else(|_| check_account_owner(a.state, program_id))
         .unwrap();
     check_signer(a.fee_payer).unwrap();
-    check_account_key(
-        a.root_domain,
-        &Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
-    )
-    .unwrap();
-    check_account_key(a.quote_mint, &Pubkey::from_str(FIDA_MINT).unwrap()).unwrap();
-    check_account_key(
-        a.pyth_fida_price_acc,
-        &Pubkey::from_str(PYTH_FIDA_PRICE_ACC).unwrap(),
-    )
-    .unwrap();
+    check_account_key(a.root_domain, &ROOT_DOMAIN_ACCOUNT).unwrap();
+    check_account_key(a.quote_mint, &FIDA_MINT).unwrap();
+    check_account_key(a.pyth_fida_price_acc, &PYTH_FIDA_PRICE_ACC).unwrap();
 
     Ok(a)
 }

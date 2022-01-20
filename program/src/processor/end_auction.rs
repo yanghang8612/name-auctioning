@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::processor::BONFIDA_SOL_VAULT;
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
@@ -65,8 +63,6 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
             system_program: next_account_info(accounts_iter)?,
         };
 
-        let spl_auction_id = &Pubkey::from_str(AUCTION_PROGRAM_ID).unwrap();
-
         // Params check and derivations
         let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + &name).as_bytes()])
             .as_ref()
@@ -118,7 +114,7 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
         // Key checks
         check_account_key(accounts.clock_sysvar, &sysvar::clock::id()).unwrap();
         check_account_key(accounts.naming_service_program, &spl_name_service::id()).unwrap();
-        check_account_key(accounts.auction_program, spl_auction_id).unwrap();
+        check_account_key(accounts.auction_program, &AUCTION_PROGRAM_ID).unwrap();
         check_account_key(accounts.name, &name_account_key).unwrap();
         check_account_key(accounts.state, &derived_state_key).unwrap();
         check_account_key(accounts.reselling_state, &derived_reselling_state_key).unwrap();
@@ -128,17 +124,13 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
         )
         .unwrap();
         check_account_key(accounts.auction_creator, &destination_account.owner).unwrap();
-        check_account_key(
-            accounts.bonfida_sol_vault,
-            &Pubkey::from_str(BONFIDA_SOL_VAULT).unwrap(),
-        )
-        .unwrap();
+        check_account_key(accounts.bonfida_sol_vault, &BONFIDA_SOL_VAULT).unwrap();
 
         // Signer checks
         check_signer(accounts.auction_creator).unwrap();
 
         // Ownership checks
-        check_account_owner(accounts.auction, spl_auction_id).unwrap();
+        check_account_owner(accounts.auction, &AUCTION_PROGRAM_ID).unwrap();
         check_account_owner(accounts.central_state, program_id).unwrap();
         check_account_owner(accounts.state, program_id).unwrap();
         check_account_owner(accounts.root_domain, &spl_name_service::id()).unwrap();

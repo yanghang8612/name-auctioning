@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint::ProgramResult,
@@ -46,11 +44,7 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
     check_account_owner(a.central_state, program_id).unwrap();
-    check_account_key(
-        a.root_domain,
-        &Pubkey::from_str(ROOT_DOMAIN_ACCOUNT).unwrap(),
-    )
-    .unwrap();
+    check_account_key(a.root_domain, &ROOT_DOMAIN_ACCOUNT).unwrap();
     check_signer(a.fee_payer).unwrap();
 
     Ok(a)

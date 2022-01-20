@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use borsh::BorshSerialize;
 use solana_program::{
     account_info::AccountInfo,
@@ -82,7 +80,7 @@ impl Cpi {
                 winners: WinnerLimit::Capped(1),
                 end_auction_at: end_auction_at.map(|n| n as i64),
                 end_auction_gap: Some(END_AUCTION_GAP as i64),
-                token_mint: Pubkey::from_str(TOKEN_MINT).unwrap(),
+                token_mint: TOKEN_MINT,
                 resource,
                 price_floor: PriceFloor::MinimumPrice([minimum_price, 0, 0, 0]),
                 max_price,
