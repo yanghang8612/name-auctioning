@@ -236,7 +236,14 @@ pub fn process_create(
 
     let min_price_fida = fp32_div(
         MINIMUM_PRICE_USD,
-        get_oracle_price_fp32(&accounts.pyth_fida_price_acc.data.borrow(), 6, 6).unwrap(), // Fida and USD have 6 decimals
+        {
+            #[cfg(feature = "mock-oracle")]
+            {
+                5 << 32
+            }
+            #[cfg(not(feature = "mock-oracle"))]
+            get_oracle_price_fp32(&accounts.pyth_fida_price_acc.data.borrow(), 6, 6).unwrap()
+        }, // Fida and USD have 6 decimals
     )
     .unwrap();
     Cpi::create_auction(

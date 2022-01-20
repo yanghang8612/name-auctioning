@@ -144,10 +144,14 @@ pub fn process_create_v2(
 
     let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
 
-    let min_price_fida = fp32_div(
-        get_usd_price(name.len()),
-        get_oracle_price_fp32(&accounts.pyth_fida_price_acc.data.borrow(), 6, 6).unwrap(), // Fida and USD have 6 decimals
-    )
+    let min_price_fida = fp32_div(get_usd_price(name.len()), {
+        #[cfg(feature = "mock-oracle")]
+        {
+            5 << 32
+        }
+        #[cfg(not(feature = "mock-oracle"))]
+        get_oracle_price_fp32(&accounts.pyth_fida_price_acc.data.borrow(), 6, 6).unwrap()
+    })
     .unwrap();
 
     // Transfer tokens

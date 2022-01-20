@@ -10,6 +10,7 @@ edition = "2018"
 no-entrypoint = []
 test-bpf = []
 no-admin = []
+mock-oracle = []
 
 [dependencies]
 solana-program = "1.9.2"
