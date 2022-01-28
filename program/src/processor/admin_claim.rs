@@ -73,88 +73,88 @@ pub fn process_a_claim(
     lamports: u64,
     space: u32,
 ) -> ProgramResult {
-    let accounts = parse_accounts(accounts)?;
+    // let accounts = parse_accounts(accounts)?;
 
-    let (derived_state_key, _) =
-        Pubkey::find_program_address(&[&accounts.name.key.to_bytes()], program_id);
-    if &derived_state_key != accounts.state.key {
-        msg!("An invalid signer account was provided");
-        return Err(ProgramError::InvalidArgument);
-    }
+    // let (derived_state_key, _) =
+    //     Pubkey::find_program_address(&[&accounts.name.key.to_bytes()], program_id);
+    // if &derived_state_key != accounts.state.key {
+    //     msg!("An invalid signer account was provided");
+    //     return Err(ProgramError::InvalidArgument);
+    // }
 
-    let central_state_nonce = accounts.central_state.data.borrow()[0];
-    let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
+    // let central_state_nonce = accounts.central_state.data.borrow()[0];
+    // let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
 
-    if accounts.name.data_is_empty() {
-        msg!("Name account does not exist. Creating.");
-        Cpi::create_name_account(
-            accounts.naming_service_program,
-            accounts.system_program,
-            accounts.name,
-            accounts.fee_payer,
-            accounts.new_name_owner,
-            accounts.root_domain,
-            accounts.central_state,
-            hashed_name,
-            lamports,
-            space,
-            central_state_signer_seeds,
-        )?;
-    } else {
-        Cpi::transfer_name_account(
-            accounts.naming_service_program,
-            accounts.central_state,
-            accounts.name,
-            accounts.new_name_owner.key,
-            Some(central_state_signer_seeds),
-        )?;
-    }
+    // if accounts.name.data_is_empty() {
+    //     msg!("Name account does not exist. Creating.");
+    //     Cpi::create_name_account(
+    //         accounts.naming_service_program,
+    //         accounts.system_program,
+    //         accounts.name,
+    //         accounts.fee_payer,
+    //         accounts.new_name_owner,
+    //         accounts.root_domain,
+    //         accounts.central_state,
+    //         hashed_name,
+    //         lamports,
+    //         space,
+    //         central_state_signer_seeds,
+    //     )?;
+    // } else {
+    //     Cpi::transfer_name_account(
+    //         accounts.naming_service_program,
+    //         accounts.central_state,
+    //         accounts.name,
+    //         accounts.new_name_owner.key,
+    //         Some(central_state_signer_seeds),
+    //     )?;
+    // }
 
-    let auction: AuctionData = try_from_slice_unchecked(&accounts.auction.data.borrow()).unwrap();
-    let clock = Clock::from_account_info(accounts.clock_sysvar).unwrap();
+    // let auction: AuctionData = try_from_slice_unchecked(&accounts.auction.data.borrow()).unwrap();
+    // let clock = Clock::from_account_info(accounts.clock_sysvar).unwrap();
 
-    if !auction.ended(clock.unix_timestamp).unwrap() {
-        msg!("The auction must have ended to reclaim");
-        return Err(NameAuctionError::AuctionInProgress.into());
-    }
+    // if !auction.ended(clock.unix_timestamp).unwrap() {
+    //     msg!("The auction must have ended to reclaim");
+    //     return Err(NameAuctionError::AuctionInProgress.into());
+    // }
 
-    if let spl_auction::processor::BidState::EnglishAuction { bids, max: _ } = auction.bid_state {
-        if bids.is_empty() {
-            msg!("The auction has no bidder and cannot be a reclaimed!");
-            return Err(ProgramError::InvalidArgument);
-        }
-    } else {
-        unreachable!()
-    }
+    // if let spl_auction::processor::BidState::EnglishAuction { bids, max: _ } = auction.bid_state {
+    //     if bids.is_empty() {
+    //         msg!("The auction has no bidder and cannot be a reclaimed!");
+    //         return Err(ProgramError::InvalidArgument);
+    //     }
+    // } else {
+    //     unreachable!()
+    // }
 
-    let clean_up_instr = close_auction_pot(
-        *accounts.auction_program.key,
-        *accounts.auction.key,
-        *accounts.bidder_pot.key,
-        *accounts.bidder_wallet.key,
-        *accounts.bonfida_vault.key,
-        *accounts.system_program.key,
-        *accounts.central_state.key,
-        *accounts.bonfida_vault.key,
-        *accounts.bidder_pot_token.key,
-        *accounts.name.key,
-    );
-    invoke_signed(
-        &clean_up_instr,
-        &[
-            accounts.auction_program.clone(),
-            accounts.auction.clone(),
-            accounts.bidder_pot.clone(),
-            accounts.bidder_pot_token.clone(),
-            accounts.bidder_wallet.clone(),
-            accounts.bonfida_vault.clone(),
-            accounts.system_program.clone(),
-            accounts.central_state.clone(),
-            accounts.name.clone(),
-            accounts.spl_token_program.clone(),
-        ],
-        &[central_state_signer_seeds],
-    )?;
+    // let clean_up_instr = close_auction_pot(
+    //     *accounts.auction_program.key,
+    //     *accounts.auction.key,
+    //     *accounts.bidder_pot.key,
+    //     *accounts.bidder_wallet.key,
+    //     *accounts.bonfida_vault.key,
+    //     *accounts.system_program.key,
+    //     *accounts.central_state.key,
+    //     *accounts.bonfida_vault.key,
+    //     *accounts.bidder_pot_token.key,
+    //     *accounts.name.key,
+    // );
+    // invoke_signed(
+    //     &clean_up_instr,
+    //     &[
+    //         accounts.auction_program.clone(),
+    //         accounts.auction.clone(),
+    //         accounts.bidder_pot.clone(),
+    //         accounts.bidder_pot_token.clone(),
+    //         accounts.bidder_wallet.clone(),
+    //         accounts.bonfida_vault.clone(),
+    //         accounts.system_program.clone(),
+    //         accounts.central_state.clone(),
+    //         accounts.name.clone(),
+    //         accounts.spl_token_program.clone(),
+    //     ],
+    //     &[central_state_signer_seeds],
+    // )?;
 
     Ok(())
 }
