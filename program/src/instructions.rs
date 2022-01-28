@@ -7,7 +7,8 @@ use solana_program::{
 
 pub use crate::processor::create_admin;
 use crate::processor::{
-    BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, FIDA_MINT, PYTH_FIDA_PRICE_ACC,
+    BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, CENTRAL_STATE, FIDA_MINT,
+    PYTH_FIDA_PRICE_ACC, ROOT_DOMAIN_ACCOUNT,
 };
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
@@ -196,8 +197,18 @@ pub enum ProgramInstruction {
         name: String,
         space: u32,
     },
-
-    TakeBack
+    /// Take back a domain name
+    /// Accounts expected by this instruction
+    ///
+    /// | Index | Writable | Signer | Description                   |
+    /// |-------|----------|--------|-------------------------------|
+    /// | 0     | ✅        | ✅      | The admin account             |
+    /// | 1     | ❌        | ❌      | The name service program id   |
+    /// | 2     | ✅        | ❌      | The name account              |
+    /// | 3     | ❌        | ❌      | The central state account     |
+    /// | 4     | ❌        | ❌      | The class (Pubkey::default()) |
+    /// | 5     | ❌        | ❌      | The .sol TLD                  |
+    TakeBack,
 }
 
 pub fn init(
@@ -580,6 +591,25 @@ pub fn create_v2(
         AccountMeta::new_readonly(pyth_fida_price_acc, false),
         AccountMeta::new(BONFIDA_FIDA_VAULT, false),
         AccountMeta::new_readonly(spl_token::ID, false),
+    ];
+
+    Instruction {
+        program_id,
+        accounts,
+        data,
+    }
+}
+
+pub fn take_back(program_id: Pubkey, admin: Pubkey, name_account: Pubkey) -> Instruction {
+    let data = ProgramInstruction::TakeBack.try_to_vec().unwrap();
+
+    let accounts = vec![
+        AccountMeta::new(admin, true),
+        AccountMeta::new_readonly(spl_name_service::id(), false),
+        AccountMeta::new(name_account, false),
+        AccountMeta::new_readonly(CENTRAL_STATE, false),
+        AccountMeta::new_readonly(Pubkey::default(), false),
+        AccountMeta::new_readonly(ROOT_DOMAIN_ACCOUNT, false),
     ];
 
     Instruction {

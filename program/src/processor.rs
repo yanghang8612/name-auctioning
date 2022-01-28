@@ -4,8 +4,7 @@ use crate::{
         admin_claim::process_a_claim, claim::process_claim, create::process_create,
         create_admin::process_create_admin, create_reverse::process_create_reverse,
         create_v2::process_create_v2, end_auction::process_end_auction, init::process_init,
-        resell::process_resell, reset_auction::process_reset_auction,
-        take_back::process_take_back
+        resell::process_resell, reset_auction::process_reset_auction, take_back::process_take_back,
     },
 };
 use borsh::BorshDeserialize;
@@ -46,6 +45,7 @@ pub const ADMIN_CREATE_KEY: Pubkey = pubkey!("CHG6XM8Ugk7xkZMcp5PMoJTYfwCG7XStv5
 pub const BONFIDA_USDC_VAULT: Pubkey = pubkey!("DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7");
 pub const ADMIN_CLAIM_KEY: Pubkey = pubkey!("VBx642K1hYGLU5Zm1CHW1uRXAtFgxN5mRqyMcXnLZFW");
 pub const PYTH_FIDA_PRICE_ACC: Pubkey = pubkey!("ETp9eKXVv1dWwHSpsXRUuXHmw24PwRkttCGVgpZEY9zF");
+pub const CENTRAL_STATE: Pubkey = pubkey!("33m47vH6Eav6jr5Ry86XjhRft2jRBLDnDgPSHoquXi2Z");
 
 // Fees taken for the reselling of domain names
 // | Tier | Percentage of payout    | Requirements   |
@@ -140,7 +140,7 @@ impl Processor {
                 process_create_v2(program_id, accounts, name, space)?;
             }
             ProgramInstruction::TakeBack => {
-                take_back::process_take_back(program_id, accounts)?;
+                process_take_back(program_id, accounts)?;
             }
         }
         Ok(())

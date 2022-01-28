@@ -1,3 +1,4 @@
+use crate::processor::{CENTRAL_STATE, ROOT_DOMAIN_ACCOUNT};
 use crate::utils::{check_account_key, check_account_owner, check_signer};
 use borsh::BorshSerialize;
 use solana_program::{
@@ -42,8 +43,7 @@ fn transfer(
 }
 
 const ADMIN: Pubkey = pubkey!("EPKGMh5ZAGy17LdJXuA6XMfBxTHR4q52ABttZVruG8QZ");
-const PARENT: Pubkey = pubkey!("58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx");
-const CENTRAL_STATE: Pubkey = pubkey!("33m47vH6Eav6jr5Ry86XjhRft2jRBLDnDgPSHoquXi2Z");
+
 struct Accounts<'a, 'b: 'a> {
     admin: &'a AccountInfo<'b>,
     naming_service_program: &'a AccountInfo<'b>,
@@ -92,7 +92,7 @@ pub fn process_take_back(program_id: &Pubkey, accounts: &[AccountInfo]) -> Progr
         *accounts.name.key,
         *accounts.name_owner.key,
         Some(Pubkey::default()),
-        Some(PARENT),
+        Some(ROOT_DOMAIN_ACCOUNT),
     )
     .unwrap();
 
