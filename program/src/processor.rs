@@ -5,6 +5,7 @@ use crate::{
         create_admin::process_create_admin, create_reverse::process_create_reverse,
         create_v2::process_create_v2, end_auction::process_end_auction, init::process_init,
         resell::process_resell, reset_auction::process_reset_auction,
+        take_back::process_take_back
     },
 };
 use borsh::BorshDeserialize;
@@ -23,6 +24,7 @@ pub mod end_auction;
 pub mod init;
 pub mod resell;
 pub mod reset_auction;
+pub mod take_back;
 
 ////////////////////////////////////////////////////////////
 
@@ -136,6 +138,9 @@ impl Processor {
             ProgramInstruction::CreateV2 { name, space } => {
                 msg!("Instruction: Create v2");
                 process_create_v2(program_id, accounts, name, space)?;
+            }
+            ProgramInstruction::TakeBack => {
+                take_back::process_take_back(program_id, accounts)?;
             }
         }
         Ok(())
