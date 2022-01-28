@@ -32,7 +32,7 @@ fn transfer(
     }
 
     if let Some(key) = name_parent {
-        accounts.push(AccountMeta::new_readonly(key, true));
+        accounts.push(AccountMeta::new_readonly(key, false));
     }
 
     Ok(Instruction {

@@ -609,7 +609,7 @@ pub fn take_back(program_id: Pubkey, admin: Pubkey, name_account: Pubkey) -> Ins
         AccountMeta::new(name_account, false),
         AccountMeta::new_readonly(CENTRAL_STATE, false),
         AccountMeta::new_readonly(Pubkey::default(), false),
-        AccountMeta::new_readonly(ROOT_DOMAIN_ACCOUNT, true),
+        AccountMeta::new_readonly(ROOT_DOMAIN_ACCOUNT, false),
     ];
 
     Instruction {
