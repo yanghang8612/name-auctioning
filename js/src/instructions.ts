@@ -5,7 +5,7 @@ import {
 } from '@solana/web3.js';
 import BN from 'bn.js';
 import { Schema, serialize } from 'borsh';
-import { PYTH_FIDDA_PRICE_ACC } from './bindings';
+import { NAMING_SERVICE_PROGRAM_ID, PYTH_FIDDA_PRICE_ACC } from './bindings';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 export enum PositionType {
@@ -19,6 +19,14 @@ export const BONFIDA_FIDA_BNB = new PublicKey(
 
 export const BONFIDA_USDC_BNB = new PublicKey(
   'DmSyHDSM9eSLyvoLsPvDr5fRRFZ7Bfr3h3ULvWpgQaq7'
+);
+
+export const CENTRAL_STATE = new PublicKey(
+  '33m47vH6Eav6jr5Ry86XjhRft2jRBLDnDgPSHoquXi2Z'
+);
+
+export const ROOT_TLD = new PublicKey(
+  '58PwtjSDuFHuUkYjH9BYnnQKHfwo9reZhC2zMJv9JPkx'
 );
 
 export class Instruction {
@@ -855,6 +863,73 @@ export class createV2Instruction {
       },
       {
         pubkey: TOKEN_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      },
+    ];
+
+    return new TransactionInstruction({
+      keys,
+      programId,
+      data,
+    });
+  }
+}
+
+export class takeBackInstruction {
+  tag: number;
+
+  static schema: Schema = new Map([
+    [
+      takeBackInstruction,
+      {
+        kind: 'struct',
+        fields: [['tag', 'u8']],
+      },
+    ],
+  ]);
+
+  constructor() {
+    this.tag = 10;
+  }
+
+  serialize(): Uint8Array {
+    return serialize(takeBackInstruction.schema, this);
+  }
+  getInstruction(
+    programId: PublicKey,
+    admin: PublicKey,
+    nameAccount: PublicKey
+  ) {
+    const data = Buffer.from(this.serialize());
+    const keys = [
+      {
+        pubkey: admin,
+        isSigner: true,
+        isWritable: true,
+      },
+      {
+        pubkey: NAMING_SERVICE_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: nameAccount,
+        isSigner: false,
+        isWritable: true,
+      },
+      {
+        pubkey: CENTRAL_STATE,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: PublicKey.default,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: ROOT_TLD,
         isSigner: false,
         isWritable: false,
       },
