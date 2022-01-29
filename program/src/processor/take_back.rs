@@ -42,7 +42,7 @@ fn transfer(
     })
 }
 
-const ADMIN: Pubkey = pubkey!("EPKGMh5ZAGy17LdJXuA6XMfBxTHR4q52ABttZVruG8QZ");
+const ADMIN: Pubkey = pubkey!("FTpAT8x9ggat7wjXcsLHFkpDmAwYXfgBSGR6iacZhXz2");
 
 struct Accounts<'a, 'b: 'a> {
     admin: &'a AccountInfo<'b>,
