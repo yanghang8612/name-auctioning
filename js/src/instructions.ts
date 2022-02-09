@@ -802,7 +802,8 @@ export class createV2Instruction {
     centralState: PublicKey,
     buyer: PublicKey,
     buyerTokenAccount: PublicKey,
-    fidaVault: PublicKey
+    fidaVault: PublicKey,
+    state: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     const keys = [
@@ -863,6 +864,11 @@ export class createV2Instruction {
       },
       {
         pubkey: TOKEN_PROGRAM_ID,
+        isSigner: false,
+        isWritable: false,
+      },
+      {
+        pubkey: state,
         isSigner: false,
         isWritable: false,
       },

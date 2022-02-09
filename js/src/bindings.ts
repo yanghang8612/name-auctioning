@@ -417,6 +417,10 @@ export const createV2 = async (
     [PROGRAM_ID.toBuffer()],
     PROGRAM_ID
   );
+  let [derived_state] = await PublicKey.findProgramAddress(
+    [nameAccount.toBuffer()],
+    PROGRAM_ID
+  );
   const ix = new createV2Instruction({ name, space }).getInstruction(
     PROGRAM_ID,
     SYSVAR_RENT_PUBKEY,
@@ -427,7 +431,8 @@ export const createV2 = async (
     centralState,
     buyer,
     buyerTokenAccount,
-    BONFIDA_FIDA_BNB
+    BONFIDA_FIDA_BNB,
+    derived_state
   );
 
   return [[], [ix]];
