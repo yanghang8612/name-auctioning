@@ -377,12 +377,18 @@ async fn test_resell() {
         None,
     );
 
+    let space = 1_000;
     let create_name_instruction = spl_name_service::instruction::create(
         spl_name_service::id(),
         NameRegistryInstruction::Create {
             hashed_name,
-            lamports: 1_000_000,
-            space: 1_000,
+            lamports: ctx
+                .banks_client
+                .get_rent()
+                .await
+                .unwrap()
+                .minimum_balance(NameRecordHeader::LEN + space),
+            space: space as u32,
         },
         name_account_key,
         ctx.payer.pubkey(),

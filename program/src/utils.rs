@@ -247,14 +247,14 @@ impl Cpi {
     ) -> ProgramResult {
         let name_bytes = ReverseLookup { name }.try_to_vec().unwrap();
         let rent = Rent::from_account_info(rent_sysvar_account)?;
-        let lamports = rent.minimum_balance(name_bytes.len());
+        let lamports = rent.minimum_balance(name_bytes.len() + NameRecordHeader::LEN);
 
         let create_name_instruction = spl_name_service::instruction::create(
             *name_service_program.key,
             NameRegistryInstruction::Create {
                 hashed_name: hashed_reverse_lookup,
                 lamports,
-                space: (name_bytes.len() + NameRecordHeader::LEN) as u32,
+                space: name_bytes.len() as u32,
             },
             *reverse_lookup_account.key,
             *fee_payer.key,
