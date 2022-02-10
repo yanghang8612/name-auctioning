@@ -34,7 +34,7 @@ struct Accounts<'a, 'b: 'a> {
     pyth_fida_price_acc: &'a AccountInfo<'b>,
     fida_vault: &'a AccountInfo<'b>,
     spl_token_program: &'a AccountInfo<'b>,
-    state_opt: Option<&'a AccountInfo<'b>>,
+    state: &'a AccountInfo<'b>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -55,7 +55,7 @@ fn parse_accounts<'a, 'b: 'a>(
         pyth_fida_price_acc: next_account_info(accounts_iter)?,
         fida_vault: next_account_info(accounts_iter)?,
         spl_token_program: next_account_info(accounts_iter)?,
-        state_opt: next_account_info(accounts_iter).ok(),
+        state: next_account_info(accounts_iter)?,
     };
 
     // Check keys
@@ -70,9 +70,8 @@ fn parse_accounts<'a, 'b: 'a>(
     // Check ownership
     check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_owner(a.central_state, program_id).unwrap();
-    if let Some(state) = a.state_opt {
-        check_account_owner(state, &system_program::id()).unwrap();
-    }
+
+    check_account_owner(a.state, &system_program::id()).unwrap();
 
     // Check signer
     check_signer(a.buyer).unwrap();
@@ -112,16 +111,14 @@ pub fn process_create_v2(
     let signer_seeds = name_account_key.to_bytes();
     let (derived_state_key, _) = Pubkey::find_program_address(&[&signer_seeds], program_id);
 
-    if let Some(state) = accounts.state_opt {
-        if &derived_state_key != state.key {
-            msg!("An invalid name auctioning state account was provided");
-            return Err(ProgramError::InvalidArgument);
-        }
+    if &derived_state_key != accounts.state.key {
+        msg!("An invalid name auctioning state account was provided");
+        return Err(ProgramError::InvalidArgument);
+    }
 
-        if !state.data_is_empty() {
-            msg!("The name auctioning state account is not empty.");
-            return Err(ProgramError::InvalidArgument);
-        }
+    if !accounts.state.data_is_empty() {
+        msg!("The name auctioning state account is not empty.");
+        return Err(ProgramError::InvalidArgument);
     }
 
     if &name_account_key != accounts.name.key {
