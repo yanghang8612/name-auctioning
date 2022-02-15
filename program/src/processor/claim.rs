@@ -7,11 +7,12 @@ use solana_program::{
     program_error::ProgramError,
     program_pack::Pack,
     pubkey::Pubkey,
+    rent::Rent,
     system_program,
     sysvar::{self, Sysvar},
 };
 use spl_auction::processor::AuctionData;
-use spl_name_service::state::get_seeds_and_key;
+use spl_name_service::state::{get_seeds_and_key, NameRecordHeader};
 use spl_token::state::Account;
 
 use super::{
@@ -102,7 +103,6 @@ pub fn process_claim(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
     hashed_name: Vec<u8>,
-    lamports: u64,
     space: u32,
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
@@ -136,6 +136,7 @@ pub fn process_claim(
 
     let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
 
+    let lamports = Rent::get()?.minimum_balance(space as usize + NameRecordHeader::LEN);
     let mut fee_percentage = 0;
     if accounts.name.data_is_empty() {
         check_signer(accounts.bidder_wallet).unwrap();

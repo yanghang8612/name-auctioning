@@ -7,11 +7,13 @@ use solana_program::{
     hash::hashv,
     msg,
     program_error::ProgramError,
+    program_pack::Pack,
     pubkey::Pubkey,
+    rent::Rent,
     system_program,
-    sysvar::{self},
+    sysvar::{self, Sysvar},
 };
-use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
+use spl_name_service::state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX};
 
 use crate::{
     processor::{ADMIN_CREATE_KEY, ROOT_DOMAIN_ACCOUNT},
@@ -105,7 +107,6 @@ fn parse_accounts<'a, 'b: 'a>(
 
 #[derive(BorshDeserialize, BorshSerialize, Clone, Debug, PartialEq)]
 pub struct Params {
-    lamports: u64,
     space: u32,
     name: String,
 }
@@ -118,16 +119,13 @@ pub fn process_create_admin(
     let (accounts, hashed_name, hashed_reverse_lookup) =
         parse_accounts(program_id, accounts, &params)?;
 
-    let Params {
-        lamports,
-        space,
-        name,
-    } = params;
+    let Params { space, name } = params;
 
     let central_state_nonce = accounts.central_state.data.borrow()[0];
 
     let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
 
+    let lamports = Rent::get()?.minimum_balance(space as usize + NameRecordHeader::LEN);
     Cpi::create_name_account(
         accounts.naming_service_program,
         accounts.system_program,

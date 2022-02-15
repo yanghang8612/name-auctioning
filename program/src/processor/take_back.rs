@@ -81,32 +81,32 @@ fn parse_accounts<'a, 'b: 'a>(
 }
 
 pub fn process_take_back(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
-    let accounts = parse_accounts(accounts)?;
-    let central_state_nonce = accounts.name_owner.data.borrow()[0];
+    // let accounts = parse_accounts(accounts)?;
+    // let central_state_nonce = accounts.name_owner.data.borrow()[0];
 
-    let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
+    // let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
 
-    let ix = transfer(
-        spl_name_service::ID,
-        *accounts.admin.key,
-        *accounts.name.key,
-        *accounts.name_owner.key,
-        Some(Pubkey::default()),
-        Some(ROOT_DOMAIN_ACCOUNT),
-    )
-    .unwrap();
+    // let ix = transfer(
+    //     spl_name_service::ID,
+    //     *accounts.admin.key,
+    //     *accounts.name.key,
+    //     *accounts.name_owner.key,
+    //     Some(Pubkey::default()),
+    //     Some(ROOT_DOMAIN_ACCOUNT),
+    // )
+    // .unwrap();
 
-    invoke_signed(
-        &ix,
-        &[
-            accounts.naming_service_program.clone(),
-            accounts.name.clone(),
-            accounts.name_owner.clone(),
-            accounts.name_class.clone(),
-            accounts.parent_name.clone(),
-        ],
-        &[central_state_signer_seeds],
-    )?;
+    // invoke_signed(
+    //     &ix,
+    //     &[
+    //         accounts.naming_service_program.clone(),
+    //         accounts.name.clone(),
+    //         accounts.name_owner.clone(),
+    //         accounts.name_class.clone(),
+    //         accounts.parent_name.clone(),
+    //     ],
+    //     &[central_state_signer_seeds],
+    // )?;
 
     Ok(())
 }

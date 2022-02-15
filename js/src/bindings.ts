@@ -163,7 +163,6 @@ export async function reclaimName(
     ownerWallet,
     PublicKey.default,
     PublicKey.default,
-    new BN(0),
     0,
     tldAuthority,
     isResell,
@@ -184,7 +183,6 @@ export async function claimName(
   bidderWallet: PublicKey,
   bidderPot: PublicKey,
   bidderPotTokenAccount: PublicKey,
-  lamports: BN,
   space: number,
   tldAuthority: PublicKey,
   isResell: boolean,
@@ -216,7 +214,6 @@ export async function claimName(
 
   let claimNameInstruction = new claimInstruction({
     hashed_name,
-    lamports,
     space,
   }).getInstruction(
     PROGRAM_ID,

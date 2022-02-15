@@ -73,7 +73,6 @@ pub enum ProgramInstruction {
     ///   21. `[writable]` The Bonfida SOL vault account
     Claim {
         hashed_name: [u8; 32],
-        lamports: u64,
         space: u32,
     },
     ResetAuction,
@@ -164,7 +163,6 @@ pub enum ProgramInstruction {
     ///   21. `[signer]` The claim admin
     ClaimAdmin {
         hashed_name: [u8; 32],
-        lamports: u64,
         space: u32,
     },
     /// End a reselling auction
@@ -314,20 +312,15 @@ pub fn claim(
     bidder_wallet: Pubkey,
     bidder_pot: Pubkey,
     bidder_pot_token: Pubkey,
-    lamports: u64,
     space: u32,
     hashed_name: [u8; 32],
     discount_account: Pubkey,
     buy_now: Pubkey,
     bonfida_sol_vault: Pubkey,
 ) -> Instruction {
-    let data = ProgramInstruction::Claim {
-        hashed_name,
-        lamports,
-        space,
-    }
-    .try_to_vec()
-    .unwrap();
+    let data = ProgramInstruction::Claim { hashed_name, space }
+        .try_to_vec()
+        .unwrap();
     let accounts = vec![
         AccountMeta::new_readonly(sysvar::clock::id(), false),
         AccountMeta::new_readonly(spl_token::id(), false),
@@ -484,16 +477,11 @@ pub fn admin_claim(
     fee_payer: Pubkey,
     root_name: Pubkey,
     hashed_name: [u8; 32],
-    lamports: u64,
     space: u32,
 ) -> Instruction {
-    let data = ProgramInstruction::ClaimAdmin {
-        hashed_name,
-        lamports,
-        space,
-    }
-    .try_to_vec()
-    .unwrap();
+    let data = ProgramInstruction::ClaimAdmin { hashed_name, space }
+        .try_to_vec()
+        .unwrap();
     let accounts = vec![
         AccountMeta::new_readonly(sysvar::clock::id(), false),
         AccountMeta::new_readonly(spl_token::id(), false),

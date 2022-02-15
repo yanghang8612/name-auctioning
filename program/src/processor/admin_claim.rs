@@ -7,9 +7,11 @@ use solana_program::{
     program::invoke_signed,
     program_error::ProgramError,
     pubkey::Pubkey,
+    rent::Rent,
     sysvar::Sysvar,
 };
 use spl_auction::{instruction::close_auction_pot, processor::AuctionData};
+use spl_name_service::state::NameRecordHeader;
 
 use super::ADMIN_CLAIM_KEY;
 use crate::{
@@ -70,7 +72,6 @@ pub fn process_a_claim(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
     hashed_name: Vec<u8>,
-    lamports: u64,
     space: u32,
 ) -> ProgramResult {
     // let accounts = parse_accounts(accounts)?;
@@ -85,6 +86,7 @@ pub fn process_a_claim(
     // let central_state_nonce = accounts.central_state.data.borrow()[0];
     // let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
 
+    // let lamports = Rent::get()?.minimum_balance(space as usize + NameRecordHeader::LEN);
     // if accounts.name.data_is_empty() {
     //     msg!("Name account does not exist. Creating.");
     //     Cpi::create_name_account(

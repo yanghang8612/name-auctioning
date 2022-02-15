@@ -80,19 +80,9 @@ impl Processor {
                 msg!("Instruction: Create");
                 process_create(program_id, accounts, name)?;
             }
-            ProgramInstruction::Claim {
-                hashed_name,
-                lamports,
-                space,
-            } => {
+            ProgramInstruction::Claim { hashed_name, space } => {
                 msg!("Instruction: Claim");
-                process_claim(
-                    program_id,
-                    accounts,
-                    Vec::from(hashed_name),
-                    lamports,
-                    space,
-                )?;
+                process_claim(program_id, accounts, Vec::from(hashed_name), space)?;
             }
             ProgramInstruction::ResetAuction => {
                 msg!("Instruction: Reset auction (admin command)");
@@ -123,13 +113,9 @@ impl Processor {
                 msg!("Instruction: Create admin");
                 process_create_admin(program_id, accounts, params)?;
             }
-            ProgramInstruction::ClaimAdmin {
-                hashed_name,
-                lamports,
-                space,
-            } => {
+            ProgramInstruction::ClaimAdmin { hashed_name, space } => {
                 msg!("Instruction: A Claim");
-                process_a_claim(program_id, accounts, hashed_name.to_vec(), lamports, space)?;
+                process_a_claim(program_id, accounts, hashed_name.to_vec(), space)?;
             }
             ProgramInstruction::EndAuction { name } => {
                 msg!("Instruction: End Auction");

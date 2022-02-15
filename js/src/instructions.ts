@@ -227,7 +227,6 @@ export class createInstruction {
 export class claimInstruction {
   tag: number;
   hashed_name: Uint8Array;
-  lamports: BN;
   space: number;
 
   static schema: Schema = new Map([
@@ -238,17 +237,15 @@ export class claimInstruction {
         fields: [
           ['tag', 'u8'],
           ['hashed_name', [32]],
-          ['lamports', 'u64'],
           ['space', 'u32'],
         ],
       },
     ],
   ]);
 
-  constructor(obj: { hashed_name: Uint8Array; lamports: BN; space: number }) {
+  constructor(obj: { hashed_name: Uint8Array; space: number }) {
     this.tag = 2;
     this.hashed_name = obj.hashed_name;
-    this.lamports = obj.lamports;
     this.space = obj.space;
   }
 
