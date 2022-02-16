@@ -1,6 +1,8 @@
 use crate::{
     processor::BONFIDA_FIDA_VAULT,
-    utils::{check_account_key, check_account_owner, check_signer, get_usd_price, Cpi},
+    utils::{
+        check_account_key, check_account_owner, check_signer, get_grapheme_len, get_usd_price, Cpi,
+    },
 };
 use bonfida_utils::{fp_math::fp32_div, pyth::get_oracle_price_fp32};
 use solana_program::{
@@ -152,7 +154,9 @@ pub fn process_create_v2(
 
     let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
 
-    let min_price_fida = fp32_div(get_usd_price(name.len()), {
+    let grapheme_len = get_grapheme_len(&name);
+
+    let min_price_fida = fp32_div(get_usd_price(grapheme_len), {
         #[cfg(feature = "mock-oracle")]
         {
             5 << 32

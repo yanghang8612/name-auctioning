@@ -21,6 +21,8 @@ use crate::{
     state::{NameAuction, ReverseLookup},
 };
 
+use unicode_segmentation::UnicodeSegmentation;
+
 pub struct Cpi {}
 
 impl Cpi {
@@ -394,4 +396,25 @@ pub fn get_usd_price(len: usize) -> u64 {
         _ => 20,
     };
     multiplier * 1_000_000
+}
+
+pub fn get_grapheme_len(name: &String) -> usize {
+    name.graphemes(true).count()
+}
+
+#[test]
+pub fn test_length() {
+    let string_1 = "1".to_string();
+    let string_2 = "12".to_string();
+    let string_3 = "jkfdgnjkdfgn".to_string();
+    let string_4 = "😀".to_string();
+    let string_5 = "◎x".to_string();
+    let string_6 = "🏳️‍🌈".to_string();
+
+    assert_eq!(get_grapheme_len(&string_1), 1);
+    assert_eq!(get_grapheme_len(&string_2), 2);
+    assert_eq!(get_grapheme_len(&string_3), 12);
+    assert_eq!(get_grapheme_len(&string_4), 1);
+    assert_eq!(get_grapheme_len(&string_5), 2);
+    assert_eq!(get_grapheme_len(&string_6), 1);
 }

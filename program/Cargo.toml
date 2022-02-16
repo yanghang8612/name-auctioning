@@ -23,6 +23,7 @@ spl-associated-token-account = "1.0.3"
 bonfida-utils = {git = "https://github.com/Bonfida/bonfida-utils.git"}
 spl-name-service = {git = "https://github.com/solana-labs/solana-program-library", features = ["no-entrypoint"]}
 spl-auction = {git = "ssh://git@github.com/Bonfida/metaplex.git", branch="bonfida-fork", features = ["no-entrypoint"]}
+unicode-segmentation = "1.9.0"
 
 [dev-dependencies]
 solana-program-test =  "1.8.5"
