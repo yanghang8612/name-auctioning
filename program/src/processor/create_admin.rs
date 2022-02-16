@@ -116,41 +116,41 @@ pub fn process_create_admin(
     accounts: &[AccountInfo],
     params: Params,
 ) -> ProgramResult {
-    let (accounts, hashed_name, hashed_reverse_lookup) =
-        parse_accounts(program_id, accounts, &params)?;
+    // let (accounts, hashed_name, hashed_reverse_lookup) =
+    //     parse_accounts(program_id, accounts, &params)?;
 
-    let Params { space, name } = params;
+    // let Params { space, name } = params;
 
-    let central_state_nonce = accounts.central_state.data.borrow()[0];
+    // let central_state_nonce = accounts.central_state.data.borrow()[0];
 
-    let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
+    // let central_state_signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[central_state_nonce]];
 
-    let lamports = Rent::get()?.minimum_balance(space as usize + NameRecordHeader::LEN);
-    Cpi::create_name_account(
-        accounts.naming_service_program,
-        accounts.system_program,
-        accounts.name,
-        accounts.fee_payer,
-        accounts.admin,
-        accounts.root_domain,
-        accounts.central_state,
-        hashed_name,
-        lamports,
-        space,
-        central_state_signer_seeds,
-    )?;
+    // let lamports = Rent::get()?.minimum_balance(space as usize + NameRecordHeader::LEN);
+    // Cpi::create_name_account(
+    //     accounts.naming_service_program,
+    //     accounts.system_program,
+    //     accounts.name,
+    //     accounts.fee_payer,
+    //     accounts.admin,
+    //     accounts.root_domain,
+    //     accounts.central_state,
+    //     hashed_name,
+    //     lamports,
+    //     space,
+    //     central_state_signer_seeds,
+    // )?;
 
-    Cpi::create_reverse_lookup_account(
-        accounts.naming_service_program,
-        accounts.system_program,
-        accounts.reverse_lookup,
-        accounts.fee_payer,
-        name,
-        hashed_reverse_lookup,
-        accounts.central_state,
-        accounts.rent_sysvar,
-        central_state_signer_seeds,
-    )?;
+    // Cpi::create_reverse_lookup_account(
+    //     accounts.naming_service_program,
+    //     accounts.system_program,
+    //     accounts.reverse_lookup,
+    //     accounts.fee_payer,
+    //     name,
+    //     hashed_reverse_lookup,
+    //     accounts.central_state,
+    //     accounts.rent_sysvar,
+    //     central_state_signer_seeds,
+    // )?;
 
     Ok(())
 }
