@@ -319,6 +319,7 @@ pub fn process_resell(
             accounts.central_state,
             accounts.rent_sysvar,
             central_state_signer_seeds,
+            None,
         )?;
     }
 

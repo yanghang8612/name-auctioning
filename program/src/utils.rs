@@ -246,6 +246,7 @@ impl Cpi {
         authority: &AccountInfo<'a>,
         rent_sysvar_account: &AccountInfo<'a>,
         signer_seeds: &[&[u8]],
+        parent_name: Option<&AccountInfo<'a>>,
     ) -> ProgramResult {
         let name_bytes = ReverseLookup { name }.try_to_vec().unwrap();
         let rent = Rent::from_account_info(rent_sysvar_account)?;
@@ -262,21 +263,30 @@ impl Cpi {
             *fee_payer.key,
             *authority.key,
             Some(*authority.key),
-            None,
+            parent_name.map(|a| *a.key),
             None,
         )?;
 
-        invoke_signed(
-            &create_name_instruction,
-            &[
-                name_service_program.clone(),
-                fee_payer.clone(),
-                authority.clone(),
-                reverse_lookup_account.clone(),
-                system_program_account.clone(),
-            ],
-            &[signer_seeds],
-        )?;
+        let mut accounts_create = vec![
+            name_service_program.clone(),
+            fee_payer.clone(),
+            authority.clone(),
+            reverse_lookup_account.clone(),
+            system_program_account.clone(),
+        ];
+
+        let mut accounts_update = vec![
+            name_service_program.clone(),
+            reverse_lookup_account.clone(),
+            authority.clone(),
+        ];
+
+        if let Some(parent_name) = parent_name {
+            accounts_create.push(parent_name.clone());
+            accounts_update.push(parent_name.clone())
+        }
+
+        invoke_signed(&create_name_instruction, &accounts_create, &[signer_seeds])?;
 
         let write_name_instruction = spl_name_service::instruction::update(
             *name_service_program.key,
@@ -284,18 +294,10 @@ impl Cpi {
             name_bytes,
             *reverse_lookup_account.key,
             *authority.key,
-            None,
+            parent_name.map(|a| *a.key),
         )?;
 
-        invoke_signed(
-            &write_name_instruction,
-            &[
-                name_service_program.clone(),
-                reverse_lookup_account.clone(),
-                authority.clone(),
-            ],
-            &[signer_seeds],
-        )?;
+        invoke_signed(&write_name_instruction, &accounts_update, &[signer_seeds])?;
         Ok(())
     }
 

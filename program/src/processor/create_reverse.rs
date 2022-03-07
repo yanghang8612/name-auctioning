@@ -4,6 +4,7 @@ use solana_program::{
     hash::hashv,
     msg,
     program_error::ProgramError,
+    program_pack::Pack,
     pubkey::Pubkey,
     system_program,
     sysvar::{self},
@@ -22,6 +23,7 @@ struct Accounts<'a, 'b: 'a> {
     system_program: &'a AccountInfo<'b>,
     central_state: &'a AccountInfo<'b>,
     fee_payer: &'a AccountInfo<'b>,
+    parent_name: Option<&'a AccountInfo<'b>>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -37,14 +39,20 @@ fn parse_accounts<'a, 'b: 'a>(
         system_program: next_account_info(accounts_iter)?,
         central_state: next_account_info(accounts_iter)?,
         fee_payer: next_account_info(accounts_iter)?,
+        parent_name: next_account_info(accounts_iter).ok(),
     };
 
+    // Check keys
     check_account_key(a.rent_sysvar, &sysvar::rent::id()).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
-    check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
-    check_account_owner(a.central_state, program_id).unwrap();
     check_account_key(a.root_domain, &ROOT_DOMAIN_ACCOUNT).unwrap();
+
+    // Check owners
+    check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
+    check_account_owner(a.central_state, program_id).unwrap();
+
+    // Check signer
     check_signer(a.fee_payer).unwrap();
 
     Ok(a)
@@ -56,6 +64,13 @@ pub fn process_create_reverse(
     name: String,
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
+
+    if let Some(parent_name) = accounts.parent_name {
+        check_account_owner(parent_name, &spl_name_service::ID).unwrap();
+        let parent =
+            spl_name_service::state::NameRecordHeader::unpack(&parent_name.data.borrow()).unwrap();
+        assert_eq!(parent.parent_name, ROOT_DOMAIN_ACCOUNT);
+    }
 
     let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + &name).as_bytes()])
         .as_ref()
@@ -82,7 +97,7 @@ pub fn process_create_reverse(
         accounts.naming_service_program.key,
         hashed_reverse_lookup.clone(),
         Some(accounts.central_state.key),
-        None,
+        accounts.parent_name.map(|a| a.key),
     );
 
     if &reverse_lookup_account_key != accounts.reverse_lookup.key {
@@ -105,6 +120,7 @@ pub fn process_create_reverse(
             accounts.central_state,
             accounts.rent_sysvar,
             central_state_signer_seeds,
+            accounts.parent_name,
         )?;
     } else {
         msg!("Reverse lookup already exists. No-op");

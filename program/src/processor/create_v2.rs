@@ -214,6 +214,7 @@ pub fn process_create_v2(
             accounts.central_state,
             accounts.rent_sysvar,
             central_state_signer_seeds,
+            None,
         )?;
     }
     Ok(())
