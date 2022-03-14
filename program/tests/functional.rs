@@ -11,13 +11,12 @@ use solana_program::{
     hash::hashv, instruction::Instruction, program_option::COption, program_pack::Pack,
     pubkey::Pubkey, rent::Rent,
 };
-use solana_program_test::{processor, ProgramTest, ProgramTestContext};
+use solana_program_test::{BanksClientError, ProgramTest, ProgramTestContext};
 use solana_sdk::{
     account::Account,
     signature::{Keypair, Signer},
     system_instruction,
     transaction::Transaction,
-    transport::TransportError,
 };
 use spl_auction::{processor::EXCLUSIVE_AUCTION_AUTHORITY, PREFIX};
 use spl_name_service::{
@@ -32,24 +31,10 @@ async fn test() {
     let program_id = Pubkey::from_str(EXCLUSIVE_AUCTION_AUTHORITY).unwrap();
     let mint_authority = Keypair::new();
     let bonfida_vault_owner = Keypair::new();
-    let mut program_test = ProgramTest::new(
-        "name_auctioning",
-        program_id,
-        // processor!(name_auctioning::entrypoint::process_instruction),
-        None,
-    );
+    let mut program_test = ProgramTest::new("name_auctioning", program_id, None);
     let auction_program_id = AUCTION_PROGRAM_ID;
-    program_test.add_program(
-        "spl_name_service",
-        spl_name_service::id(),
-        processor!(spl_name_service::processor::Processor::process_instruction),
-    );
-    program_test.add_program(
-        "spl_auction",
-        auction_program_id,
-        // processor!(spl_auction::processor::process_instruction),
-        processor!(spl_auction::processor::process_instruction),
-    );
+    program_test.add_program("spl_name_service", spl_name_service::id(), None);
+    program_test.add_program("spl_auction", auction_program_id, None);
 
     let mut mint_data = vec![0u8; Mint::LEN];
     Mint {
@@ -481,7 +466,7 @@ pub async fn sign_send_instruction(
     ctx: &mut ProgramTestContext,
     instruction: Instruction,
     signers: Vec<&Keypair>,
-) -> Result<(), TransportError> {
+) -> Result<(), BanksClientError> {
     let mut transaction = Transaction::new_with_payer(&[instruction], Some(&ctx.payer.pubkey()));
     let mut payer_signers = vec![&ctx.payer];
     for s in signers {
