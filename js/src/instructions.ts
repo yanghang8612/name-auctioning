@@ -591,7 +591,8 @@ export class createReverseInstruction {
     rootDomain: PublicKey,
     reverseLookupAccount: PublicKey,
     centralStateAccount: PublicKey,
-    feePayer: PublicKey
+    feePayer: PublicKey,
+    parentName?: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
@@ -631,6 +632,14 @@ export class createReverseInstruction {
         isWritable: true,
       },
     ];
+
+    if (parentName) {
+      keys.push({
+        pubkey: parentName,
+        isSigner: false,
+        isWritable: false,
+      });
+    }
 
     return new TransactionInstruction({
       keys,

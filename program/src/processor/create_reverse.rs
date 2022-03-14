@@ -9,7 +9,7 @@ use solana_program::{
     system_program,
     sysvar::{self},
 };
-use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
+use spl_name_service::state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX};
 
 use crate::utils::{check_account_key, check_account_owner, check_signer, Cpi};
 
@@ -68,7 +68,7 @@ pub fn process_create_reverse(
     if let Some(parent_name) = accounts.parent_name {
         check_account_owner(parent_name, &spl_name_service::ID).unwrap();
         let parent =
-            spl_name_service::state::NameRecordHeader::unpack(&parent_name.data.borrow()).unwrap();
+            NameRecordHeader::unpack(&parent_name.data.borrow()[..NameRecordHeader::LEN]).unwrap();
         assert_eq!(parent.parent_name, ROOT_DOMAIN_ACCOUNT);
     }
 
