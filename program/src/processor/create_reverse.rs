@@ -67,8 +67,7 @@ pub fn process_create_reverse(
 
     if let Some(parent_name) = accounts.parent_name {
         check_account_owner(parent_name, &spl_name_service::ID).unwrap();
-        let parent =
-            NameRecordHeader::unpack(&parent_name.data.borrow()[..NameRecordHeader::LEN]).unwrap();
+        let parent = NameRecordHeader::unpack_from_slice(&parent_name.data.borrow()).unwrap();
         assert_eq!(parent.parent_name, ROOT_DOMAIN_ACCOUNT);
     }
 

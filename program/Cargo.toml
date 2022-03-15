@@ -26,7 +26,7 @@ spl-auction = {git = "ssh://git@github.com/Bonfida/metaplex.git", branch="bonfid
 unicode-segmentation = "1.9.0"
 
 [dev-dependencies]
-solana-program-test =  "1.8.5"
+solana-program-test =  "1.10.2"
 tokio  = {version = "1.0", features = ["macros"]}
 futures =  "0.3"
 solana-sdk = "1.8.5"
