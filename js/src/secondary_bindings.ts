@@ -116,7 +116,10 @@ export async function performReverseLookup(
     centralState
   );
 
-  let name = await NameRegistryState.retrieve(connection, reverseLookupAccount);
+  let { registry: name } = await NameRegistryState.retrieve(
+    connection,
+    reverseLookupAccount
+  );
   if (!name.data) {
     throw 'Could not retrieve name data';
   }

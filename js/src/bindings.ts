@@ -7,7 +7,7 @@ import {
   SYSVAR_RENT_PUBKEY,
   TransactionInstruction,
 } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID } from './token';
 import {
   BONFIDA_FIDA_BNB,
   BONFIDA_USDC_BNB,
@@ -340,7 +340,8 @@ export async function createReverseName(
   let hashedReverseLookup = await getHashedName(nameAccount.toBase58());
   let reverseLookupAccount = await getNameAccountKey(
     hashedReverseLookup,
-    centralState
+    centralState,
+    parentName
   );
 
   let initCentralStateInstruction = new createReverseInstruction({

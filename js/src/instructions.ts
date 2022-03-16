@@ -6,7 +6,7 @@ import {
 import BN from 'bn.js';
 import { Schema, serialize } from 'borsh';
 import { NAMING_SERVICE_PROGRAM_ID, PYTH_FIDDA_PRICE_ACC } from './bindings';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID } from './token';
 
 export enum PositionType {
   Short = 0,
