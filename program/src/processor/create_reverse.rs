@@ -84,7 +84,9 @@ pub fn process_create_reverse(
         accounts.naming_service_program.key,
         hashed_name,
         None,
-        Some(accounts.root_domain.key),
+        accounts
+            .parent_name
+            .map_or(Some(&ROOT_DOMAIN_ACCOUNT), |acc| Some(&acc.key)),
     );
 
     let hashed_reverse_lookup =
