@@ -6,6 +6,7 @@ use solana_program::{
     msg,
     program::invoke_signed,
     program_error::ProgramError,
+    program_pack::Pack,
     pubkey::Pubkey,
     rent::Rent,
     sysvar::Sysvar,

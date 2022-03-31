@@ -44,31 +44,31 @@ pub fn process_init(
     accounts: &[AccountInfo],
     state_nonce: u8,
 ) -> ProgramResult {
-    let accounts = parse_accounts(program_id, accounts)?;
+    // let accounts = parse_accounts(program_id, accounts)?;
 
-    let signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[state_nonce]];
-    let (derived_state_key, state_nonce) =
-        Pubkey::find_program_address(&[&program_id.to_bytes()], program_id);
+    // let signer_seeds: &[&[u8]] = &[&program_id.to_bytes(), &[state_nonce]];
+    // let (derived_state_key, state_nonce) =
+    //     Pubkey::find_program_address(&[&program_id.to_bytes()], program_id);
 
-    if &derived_state_key != accounts.state_account.key {
-        msg!("Incorrect state account or signer nonce provided");
-        return Err(ProgramError::InvalidArgument);
-    }
+    // if &derived_state_key != accounts.state_account.key {
+    //     msg!("Incorrect state account or signer nonce provided");
+    //     return Err(ProgramError::InvalidArgument);
+    // }
 
-    Cpi::create_account(
-        program_id,
-        accounts.system_program,
-        accounts.fee_payer,
-        accounts.state_account,
-        accounts.rent_sysvar_account,
-        signer_seeds,
-        CentralState::LEN,
-    )?;
+    // Cpi::create_account(
+    //     program_id,
+    //     accounts.system_program,
+    //     accounts.fee_payer,
+    //     accounts.state_account,
+    //     accounts.rent_sysvar_account,
+    //     signer_seeds,
+    //     CentralState::LEN,
+    // )?;
 
-    let state = CentralState {
-        signer_nonce: state_nonce,
-    };
-    state.pack_into_slice(&mut accounts.state_account.data.borrow_mut());
+    // let state = CentralState {
+    //     signer_nonce: state_nonce,
+    // };
+    // state.pack_into_slice(&mut accounts.state_account.data.borrow_mut());
 
     Ok(())
 }
