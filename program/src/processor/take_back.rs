@@ -42,7 +42,7 @@ fn transfer(
     })
 }
 
-const ADMIN: Pubkey = pubkey!("FTpAT8x9ggat7wjXcsLHFkpDmAwYXfgBSGR6iacZhXz2");
+const ADMIN: Pubkey = pubkey!("VBx642K1hYGLU5Zm1CHW1uRXAtFgxN5mRqyMcXnLZFW");
 
 struct Accounts<'a, 'b: 'a> {
     admin: &'a AccountInfo<'b>,
@@ -51,6 +51,7 @@ struct Accounts<'a, 'b: 'a> {
     name_owner: &'a AccountInfo<'b>,
     name_class: &'a AccountInfo<'b>,
     parent_name: &'a AccountInfo<'b>,
+    new_owner: &'a AccountInfo<'b>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -64,6 +65,7 @@ fn parse_accounts<'a, 'b: 'a>(
         name_owner: next_account_info(accounts_iter)?,
         name_class: next_account_info(accounts_iter)?,
         parent_name: next_account_info(accounts_iter)?,
+        new_owner: next_account_info(accounts_iter)?,
     };
 
     // Check keys
@@ -88,7 +90,7 @@ pub fn process_take_back(program_id: &Pubkey, accounts: &[AccountInfo]) -> Progr
 
     // let ix = transfer(
     //     spl_name_service::ID,
-    //     *accounts.admin.key,
+    //     *accounts.new_owner.key,
     //     *accounts.name.key,
     //     *accounts.name_owner.key,
     //     Some(Pubkey::default()),

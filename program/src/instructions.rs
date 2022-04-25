@@ -588,7 +588,12 @@ pub fn create_v2(
     }
 }
 
-pub fn take_back(program_id: Pubkey, admin: Pubkey, name_account: Pubkey) -> Instruction {
+pub fn take_back(
+    program_id: Pubkey,
+    admin: Pubkey,
+    name_account: Pubkey,
+    new_owner: Pubkey,
+) -> Instruction {
     let data = ProgramInstruction::TakeBack.try_to_vec().unwrap();
 
     let accounts = vec![
@@ -598,6 +603,7 @@ pub fn take_back(program_id: Pubkey, admin: Pubkey, name_account: Pubkey) -> Ins
         AccountMeta::new_readonly(CENTRAL_STATE, false),
         AccountMeta::new_readonly(Pubkey::default(), false),
         AccountMeta::new_readonly(ROOT_DOMAIN_ACCOUNT, false),
+        AccountMeta::new_readonly(new_owner, false),
     ];
 
     Instruction {
