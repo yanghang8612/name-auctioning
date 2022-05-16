@@ -3,11 +3,15 @@ use solana_program::{
     entrypoint::ProgramResult,
     msg,
     program_error::ProgramError,
+    program_pack::Pack,
     pubkey::Pubkey,
-    sysvar,
+    system_program, sysvar,
 };
 
-use crate::utils::{check_account_key, check_account_owner, check_signer, Cpi};
+use crate::{
+    state::{NameAuction, NameAuctionStatus},
+    utils::{check_account_key, check_account_owner, check_signer, Cpi},
+};
 
 use super::{ADMIN, AUCTION_PROGRAM_ID};
 
@@ -38,6 +42,7 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
     check_account_owner(a.auction, &AUCTION_PROGRAM_ID).unwrap();
     check_account_owner(a.state, program_id).unwrap();
+    check_account_owner(a.name, &system_program::id()).unwrap();
 
     #[cfg(not(feature = "no-admin"))]
     check_account_key(a.admin, &ADMIN).unwrap();
@@ -58,6 +63,12 @@ pub fn process_reset_auction(program_id: &Pubkey, accounts: &[AccountInfo]) -> P
         msg!("An invalid signer account was provided");
         return Err(ProgramError::InvalidArgument);
     }
+
+    let state = NameAuction::unpack_unchecked(&accounts.state.data.borrow())?;
+    if state.status != NameAuctionStatus::FirstAuction {
+        msg!("The auction must be a first auction.");
+        return Err(ProgramError::InvalidArgument);
+    };
 
     let signer_seeds: &[&[u8]] = &[&signer_seeds, &[derived_signer_nonce]];
 
