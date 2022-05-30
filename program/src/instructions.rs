@@ -277,11 +277,13 @@ pub fn create_reverse(
     central_state_account: Pubkey,
     fee_payer: Pubkey,
     name: String,
+    parent_name_opt: Option<Pubkey>,
+    parent_name_owner_opt: Option<Pubkey>,
 ) -> Instruction {
     let data = ProgramInstruction::CreateReverse { name }
         .try_to_vec()
         .unwrap();
-    let accounts = vec![
+    let mut accounts = vec![
         AccountMeta::new_readonly(sysvar::rent::id(), false),
         AccountMeta::new_readonly(spl_name_service::id(), false),
         AccountMeta::new_readonly(root_domain, false),
@@ -290,6 +292,13 @@ pub fn create_reverse(
         AccountMeta::new_readonly(central_state_account, false),
         AccountMeta::new(fee_payer, true),
     ];
+    if let Some(k) = parent_name_opt {
+        accounts.push(AccountMeta::new(k, false));
+        accounts.push(AccountMeta::new_readonly(
+            parent_name_owner_opt.unwrap(),
+            true,
+        ));
+    }
     Instruction {
         program_id,
         accounts,

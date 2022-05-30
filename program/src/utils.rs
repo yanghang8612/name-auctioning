@@ -246,8 +246,8 @@ impl Cpi {
         authority: &AccountInfo<'a>,
         rent_sysvar_account: &AccountInfo<'a>,
         signer_seeds: &[&[u8]],
-        parent_name: Option<&AccountInfo<'a>>,
         parent_name_opt: Option<&AccountInfo<'a>>,
+        parent_name_owner_opt: Option<&AccountInfo<'a>>,
     ) -> ProgramResult {
         let name_bytes = ReverseLookup { name }.try_to_vec().unwrap();
         let rent = Rent::from_account_info(rent_sysvar_account)?;
@@ -264,8 +264,8 @@ impl Cpi {
             *fee_payer.key,
             *authority.key,
             Some(*authority.key),
-            parent_name.map(|a| *a.key),
             parent_name_opt.map(|a| *a.key),
+            parent_name_owner_opt.map(|a| *a.key),
         )?;
 
         let mut accounts_create = vec![
@@ -282,9 +282,10 @@ impl Cpi {
             authority.clone(),
         ];
 
-        if let Some(parent_name) = parent_name {
+        if let Some(parent_name) = parent_name_opt {
             accounts_create.push(parent_name.clone());
-            accounts_update.push(parent_name.clone())
+            accounts_create.push(parent_name_owner_opt.unwrap().clone());
+            accounts_update.push(parent_name.clone());
         }
 
         invoke_signed(&create_name_instruction, &accounts_create, &[signer_seeds])?;
@@ -295,7 +296,7 @@ impl Cpi {
             name_bytes,
             *reverse_lookup_account.key,
             *authority.key,
-            parent_name.map(|a| *a.key),
+            parent_name_opt.map(|a| *a.key),
         )?;
 
         invoke_signed(&write_name_instruction, &accounts_update, &[signer_seeds])?;

@@ -102,16 +102,16 @@ async fn test() {
         },
     );
 
-    // program_test.add_account(
-    //     derived_state_key,
-    //     Account {
-    //         lamports: 1_000_000,
-    //         data: vec![state_nonce],
-    //         owner: program_id,
-    //         executable: false,
-    //         ..Account::default()
-    //     }
-    // );
+    program_test.add_account(
+        derived_central_state_key,
+        Account {
+            lamports: 1_000_000,
+            data: vec![state_nonce],
+            owner: program_id,
+            executable: false,
+            ..Account::default()
+        },
+    );
 
     let mut ctx = program_test.start_with_context().await;
 
@@ -292,6 +292,17 @@ async fn test_resell() {
     let (derived_central_state_key, state_nonce) =
         Pubkey::find_program_address(&[&program_id.to_bytes()], &program_id);
 
+    program_test.add_account(
+        derived_central_state_key,
+        Account {
+            lamports: 1_000_000,
+            data: vec![state_nonce],
+            owner: program_id,
+            executable: false,
+            ..Account::default()
+        },
+    );
+
     let temp_owner = Keypair::new();
 
     let root_domain_data = spl_name_service::state::NameRecordHeader {
@@ -387,6 +398,52 @@ async fn test_resell() {
         .await
         .unwrap();
 
+    let subdomain = "kevin";
+    let hashed_subdomain_name: Vec<u8> = hashv(&[(HASH_PREFIX.to_owned() + subdomain).as_bytes()])
+        .as_ref()
+        .to_vec();
+    let (subdomain_name_account_key, _) = get_seeds_and_key(
+        &spl_name_service::id(),
+        hashed_subdomain_name.clone(),
+        None,
+        Some(&name_account_key),
+    );
+
+    let subdomain_hashed_reverse_lookup =
+        hashv(&[(HASH_PREFIX.to_owned() + &subdomain_name_account_key.to_string()).as_bytes()])
+            .as_ref()
+            .to_vec();
+    let (subdomain_reverse_lookup_account_key, _) = get_seeds_and_key(
+        &spl_name_service::id(),
+        subdomain_hashed_reverse_lookup.clone(),
+        Some(&derived_central_state_key),
+        Some(&name_account_key),
+    );
+
+    let create_subdomain_instruction = spl_name_service::instruction::create(
+        spl_name_service::id(),
+        NameRegistryInstruction::Create {
+            hashed_name: hashed_subdomain_name,
+            lamports: ctx
+                .banks_client
+                .get_rent()
+                .await
+                .unwrap()
+                .minimum_balance(NameRecordHeader::LEN + space),
+            space: space as u32,
+        },
+        subdomain_name_account_key,
+        ctx.payer.pubkey(),
+        ctx.payer.pubkey(),
+        None,
+        Some(name_account_key),
+        Some(ctx.payer.pubkey()),
+    )
+    .unwrap();
+    sign_send_instruction(&mut ctx, create_subdomain_instruction, vec![]) // Signed by payer
+        .await
+        .unwrap();
+
     let create_reverse_naming_auction_instruction = create_reverse(
         program_id,
         root_name_account_key,
@@ -394,11 +451,32 @@ async fn test_resell() {
         derived_central_state_key,
         ctx.payer.pubkey(),
         name.to_owned(),
+        None,
+        None,
     );
 
     sign_send_instruction(&mut ctx, create_reverse_naming_auction_instruction, vec![])
         .await
         .unwrap();
+
+    let create_reverse_subdomain_naming_auction_instruction = create_reverse(
+        program_id,
+        root_name_account_key,
+        subdomain_reverse_lookup_account_key,
+        derived_central_state_key,
+        ctx.payer.pubkey(),
+        subdomain.to_owned(),
+        Some(name_account_key),
+        Some(ctx.payer.pubkey()),
+    );
+
+    sign_send_instruction(
+        &mut ctx,
+        create_reverse_subdomain_naming_auction_instruction,
+        vec![],
+    )
+    .await
+    .unwrap();
 
     let transfer_name_instr = spl_name_service::instruction::transfer(
         spl_name_service::id(),

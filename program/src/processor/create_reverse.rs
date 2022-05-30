@@ -4,12 +4,11 @@ use solana_program::{
     hash::hashv,
     msg,
     program_error::ProgramError,
-    program_pack::Pack,
     pubkey::Pubkey,
     system_program,
     sysvar::{self},
 };
-use spl_name_service::state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX};
+use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
 
 use crate::utils::{check_account_key, check_account_owner, check_signer, Cpi};
 
@@ -23,7 +22,7 @@ struct Accounts<'a, 'b: 'a> {
     system_program: &'a AccountInfo<'b>,
     central_state: &'a AccountInfo<'b>,
     fee_payer: &'a AccountInfo<'b>,
-    parent_name: Option<&'a AccountInfo<'b>>,
+    parent_name_opt: Option<&'a AccountInfo<'b>>,
     parent_name_owner_opt: Option<&'a AccountInfo<'b>>,
 }
 
@@ -40,7 +39,7 @@ fn parse_accounts<'a, 'b: 'a>(
         system_program: next_account_info(accounts_iter)?,
         central_state: next_account_info(accounts_iter)?,
         fee_payer: next_account_info(accounts_iter)?,
-        parent_name: next_account_info(accounts_iter).ok(),
+        parent_name_opt: next_account_info(accounts_iter).ok(),
         parent_name_owner_opt: next_account_info(accounts_iter).ok(),
     };
 
@@ -56,6 +55,10 @@ fn parse_accounts<'a, 'b: 'a>(
 
     // Check signer
     check_signer(a.fee_payer).unwrap();
+    a.parent_name_owner_opt
+        .map(check_signer)
+        .transpose()
+        .unwrap();
 
     Ok(a)
 }
@@ -67,10 +70,12 @@ pub fn process_create_reverse(
 ) -> ProgramResult {
     let accounts = parse_accounts(program_id, accounts)?;
 
-    if let Some(parent_name) = accounts.parent_name {
+    if let Some(parent_name) = accounts.parent_name_opt {
+        assert!(accounts.parent_name_owner_opt.is_some());
         check_account_owner(parent_name, &spl_name_service::ID).unwrap();
-        let parent = NameRecordHeader::unpack_from_slice(&parent_name.data.borrow()).unwrap();
-        assert_eq!(parent.parent_name, ROOT_DOMAIN_ACCOUNT);
+        check_signer(accounts.parent_name_owner_opt.unwrap()).unwrap();
+        // let parent = NameRecordHeader::unpack_from_slice(&parent_name.data.borrow()).unwrap();
+        // assert_eq!(parent.parent_name, ROOT_DOMAIN_ACCOUNT);
     }
 
     let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + &name).as_bytes()])
@@ -87,7 +92,7 @@ pub fn process_create_reverse(
         hashed_name,
         None,
         accounts
-            .parent_name
+            .parent_name_opt
             .map_or(Some(&ROOT_DOMAIN_ACCOUNT), |acc| Some(acc.key)),
     );
 
@@ -100,7 +105,7 @@ pub fn process_create_reverse(
         accounts.naming_service_program.key,
         hashed_reverse_lookup.clone(),
         Some(accounts.central_state.key),
-        accounts.parent_name.map(|a| a.key),
+        accounts.parent_name_opt.map(|a| a.key),
     );
 
     if &reverse_lookup_account_key != accounts.reverse_lookup.key {
@@ -123,7 +128,7 @@ pub fn process_create_reverse(
             accounts.central_state,
             accounts.rent_sysvar,
             central_state_signer_seeds,
-            accounts.parent_name,
+            accounts.parent_name_opt,
             accounts.parent_name_owner_opt,
         )?;
     } else {
