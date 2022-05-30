@@ -330,7 +330,8 @@ export async function createReverseName(
   name: string,
   feePayer: PublicKey,
   tldAuthority: PublicKey,
-  parentName?: PublicKey
+  parentName?: PublicKey,
+  parentNameOwner?: PublicKey
 ): Promise<PrimedTransaction> {
   let [centralState] = await PublicKey.findProgramAddress(
     [PROGRAM_ID.toBuffer()],
@@ -354,7 +355,8 @@ export async function createReverseName(
     reverseLookupAccount,
     centralState,
     feePayer,
-    parentName
+    parentName,
+    parentNameOwner
   );
 
   let instructions = [initCentralStateInstruction];

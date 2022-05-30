@@ -592,7 +592,8 @@ export class createReverseInstruction {
     reverseLookupAccount: PublicKey,
     centralStateAccount: PublicKey,
     feePayer: PublicKey,
-    parentName?: PublicKey
+    parentName?: PublicKey,
+    parentNameOwner?: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
     let keys = [
@@ -634,9 +635,17 @@ export class createReverseInstruction {
     ];
 
     if (parentName) {
+      if (!parentNameOwner) {
+        throw new Error('Missing parent name owner');
+      }
       keys.push({
         pubkey: parentName,
         isSigner: false,
+        isWritable: false,
+      });
+      keys.push({
+        pubkey: parentNameOwner,
+        isSigner: true,
         isWritable: false,
       });
     }
