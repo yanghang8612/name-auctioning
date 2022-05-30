@@ -270,6 +270,7 @@ pub fn process_create(
             accounts.rent_sysvar,
             central_state_signer_seeds,
             None,
+            None,
         )?;
     }
 

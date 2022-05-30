@@ -24,6 +24,7 @@ struct Accounts<'a, 'b: 'a> {
     central_state: &'a AccountInfo<'b>,
     fee_payer: &'a AccountInfo<'b>,
     parent_name: Option<&'a AccountInfo<'b>>,
+    parent_name_owner_opt: Option<&'a AccountInfo<'b>>,
 }
 
 fn parse_accounts<'a, 'b: 'a>(
@@ -40,6 +41,7 @@ fn parse_accounts<'a, 'b: 'a>(
         central_state: next_account_info(accounts_iter)?,
         fee_payer: next_account_info(accounts_iter)?,
         parent_name: next_account_info(accounts_iter).ok(),
+        parent_name_owner_opt: next_account_info(accounts_iter).ok(),
     };
 
     // Check keys
@@ -86,7 +88,7 @@ pub fn process_create_reverse(
         None,
         accounts
             .parent_name
-            .map_or(Some(&ROOT_DOMAIN_ACCOUNT), |acc| Some(&acc.key)),
+            .map_or(Some(&ROOT_DOMAIN_ACCOUNT), |acc| Some(acc.key)),
     );
 
     let hashed_reverse_lookup =
@@ -122,6 +124,7 @@ pub fn process_create_reverse(
             accounts.rent_sysvar,
             central_state_signer_seeds,
             accounts.parent_name,
+            accounts.parent_name_owner_opt,
         )?;
     } else {
         msg!("Reverse lookup already exists. No-op");

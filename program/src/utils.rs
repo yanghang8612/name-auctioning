@@ -247,6 +247,7 @@ impl Cpi {
         rent_sysvar_account: &AccountInfo<'a>,
         signer_seeds: &[&[u8]],
         parent_name: Option<&AccountInfo<'a>>,
+        parent_name_opt: Option<&AccountInfo<'a>>,
     ) -> ProgramResult {
         let name_bytes = ReverseLookup { name }.try_to_vec().unwrap();
         let rent = Rent::from_account_info(rent_sysvar_account)?;
@@ -264,7 +265,7 @@ impl Cpi {
             *authority.key,
             Some(*authority.key),
             parent_name.map(|a| *a.key),
-            None,
+            parent_name_opt.map(|a| *a.key),
         )?;
 
         let mut accounts_create = vec![
