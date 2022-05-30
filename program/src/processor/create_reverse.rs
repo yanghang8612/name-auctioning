@@ -4,11 +4,12 @@ use solana_program::{
     hash::hashv,
     msg,
     program_error::ProgramError,
+    program_pack::Pack,
     pubkey::Pubkey,
     system_program,
     sysvar::{self},
 };
-use spl_name_service::state::{get_seeds_and_key, HASH_PREFIX};
+use spl_name_service::state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX};
 
 use crate::utils::{check_account_key, check_account_owner, check_signer, Cpi};
 
@@ -74,8 +75,8 @@ pub fn process_create_reverse(
         assert!(accounts.parent_name_owner_opt.is_some());
         check_account_owner(parent_name, &spl_name_service::ID).unwrap();
         check_signer(accounts.parent_name_owner_opt.unwrap()).unwrap();
-        // let parent = NameRecordHeader::unpack_from_slice(&parent_name.data.borrow()).unwrap();
-        // assert_eq!(parent.parent_name, ROOT_DOMAIN_ACCOUNT);
+        let parent = NameRecordHeader::unpack_from_slice(&parent_name.data.borrow()).unwrap();
+        assert_eq!(parent.parent_name, ROOT_DOMAIN_ACCOUNT);
     }
 
     let hashed_name = hashv(&[(HASH_PREFIX.to_owned() + &name).as_bytes()])
