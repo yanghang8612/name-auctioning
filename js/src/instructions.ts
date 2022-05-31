@@ -641,7 +641,7 @@ export class createReverseInstruction {
       keys.push({
         pubkey: parentName,
         isSigner: false,
-        isWritable: false,
+        isWritable: true,
       });
       keys.push({
         pubkey: parentNameOwner,
