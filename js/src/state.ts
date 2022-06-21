@@ -1,6 +1,6 @@
 import { PublicKey, Connection } from '@solana/web3.js';
 import { Schema, deserializeUnchecked } from 'borsh';
-import { PROGRAM_ID } from './bindings';
+import { PROGRAM_ID } from './constant';
 
 export class NameAuction {
   isInitialized: number;

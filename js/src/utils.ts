@@ -1,6 +1,6 @@
 import { getHashedName, getNameAccountKey } from '@bonfida/spl-name-service';
 import { PublicKey, Connection, AccountInfo } from '@solana/web3.js';
-import { PROGRAM_ID, ROOT_DOMAIN_ACCOUNT } from './bindings';
+import { PROGRAM_ID, ROOT_DOMAIN_ACCOUNT } from './constant';
 
 export async function getState(connection: Connection, name: string) {
   let hashedName = await getHashedName(name);

@@ -5,7 +5,7 @@ import {
 } from '@solana/web3.js';
 import BN from 'bn.js';
 import { Schema, serialize } from 'borsh';
-import { NAMING_SERVICE_PROGRAM_ID, PYTH_FIDDA_PRICE_ACC } from './bindings';
+import { NAMING_SERVICE_PROGRAM_ID, PYTH_FIDDA_PRICE_ACC } from './constant';
 import { TOKEN_PROGRAM_ID } from './token';
 
 export enum PositionType {

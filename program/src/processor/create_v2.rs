@@ -53,7 +53,7 @@ fn parse_accounts<'a, 'b: 'a>(
         system_program: next_account_info(accounts_iter)?,
         central_state: next_account_info(accounts_iter)?,
         buyer: next_account_info(accounts_iter)?,
-        buyer_token_source: next_account_info(accounts_iter)?,
+        buyer_token_source: next_account_info(accounts_iter)?, //
         pyth_fida_price_acc: next_account_info(accounts_iter)?,
         fida_vault: next_account_info(accounts_iter)?,
         spl_token_program: next_account_info(accounts_iter)?,

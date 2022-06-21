@@ -8,7 +8,7 @@ import {
 import { AccountInfo, Connection, PublicKey } from '@solana/web3.js';
 import BN from 'bn.js';
 import bs58 from 'bs58';
-import { AUCTION_PROGRAM_ID, PROGRAM_ID } from './bindings';
+import { AUCTION_PROGRAM_ID, PROGRAM_ID } from './constant';
 import { getMultipleAccountInfo } from './utils';
 
 export async function findActiveAuctionsForUser(
