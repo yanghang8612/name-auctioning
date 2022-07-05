@@ -1,5 +1,4 @@
 import {
-  getFilteredProgramAccounts,
   getHashedName,
   getNameAccountKey,
   NameRegistryState,
@@ -23,13 +22,11 @@ export async function findActiveAuctionsForUser(
       },
     },
   ];
-  const accounts = await getFilteredProgramAccounts(
-    connection,
-    AUCTION_PROGRAM_ID,
-    filters
-  );
+  const accounts = await connection.getProgramAccounts(AUCTION_PROGRAM_ID, {
+    filters,
+  });
   return accounts.map((a) => {
-    return new PublicKey(a.accountInfo.data.slice(64, 96));
+    return new PublicKey(a.account.data.slice(64, 96));
   });
 }
 
@@ -56,11 +53,9 @@ export async function findEndingAuctions(
       },
     },
   ];
-  let accounts = await getFilteredProgramAccounts(
-    connection,
-    AUCTION_PROGRAM_ID,
-    filters
-  );
+  let accounts = await connection.getProgramAccounts(AUCTION_PROGRAM_ID, {
+    filters,
+  });
   filters = [
     {
       memcmp: {
@@ -77,9 +72,11 @@ export async function findEndingAuctions(
   ];
 
   accounts = accounts.concat(
-    await getFilteredProgramAccounts(connection, AUCTION_PROGRAM_ID, filters)
+    await connection.getProgramAccounts(AUCTION_PROGRAM_ID, { filters })
   );
-  return accounts;
+  return accounts.map((e) => {
+    return { accountInfo: e.account, publicKey: e.pubkey };
+  });
 }
 
 export async function findOwnedNameAccountsForUser(
@@ -94,12 +91,10 @@ export async function findOwnedNameAccountsForUser(
       },
     },
   ];
-  const accounts = await getFilteredProgramAccounts(
-    connection,
-    NAME_PROGRAM_ID,
-    filters
-  );
-  return accounts.map((a) => a.publicKey);
+  const accounts = await connection.getProgramAccounts(NAME_PROGRAM_ID, {
+    filters,
+  });
+  return accounts.map((a) => a.pubkey);
 }
 
 export async function performReverseLookup(
