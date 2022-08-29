@@ -23,7 +23,7 @@ use crate::{
 };
 use spl_token::state::Account;
 
-use super::AUCTION_PROGRAM_ID;
+use super::{AUCTION_PROGRAM_ID, ROOT_DOMAIN_ACCOUNT};
 
 struct Accounts<'a, 'b: 'a> {
     rent_sysvar: &'a AccountInfo<'b>,
@@ -72,7 +72,7 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
     check_signer(a.name_owner).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
-    check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
+    check_account_key(a.root_domain, &ROOT_DOMAIN_ACCOUNT).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
     check_account_owner(a.central_state, program_id).unwrap();
     check_account_key(a.auction_program, &AUCTION_PROGRAM_ID).unwrap();

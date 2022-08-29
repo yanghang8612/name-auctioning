@@ -22,7 +22,7 @@ use crate::{
     utils::{check_account_key, check_account_owner, check_signer, Cpi},
 };
 
-use super::AUCTION_PROGRAM_ID;
+use super::{AUCTION_PROGRAM_ID, ROOT_DOMAIN_ACCOUNT};
 
 struct Accounts<'a, 'b: 'a> {
     clock_sysvar: &'a AccountInfo<'b>,
@@ -133,7 +133,7 @@ impl<'a, 'b: 'a> Accounts<'a, 'b> {
         check_account_owner(accounts.auction, &AUCTION_PROGRAM_ID).unwrap();
         check_account_owner(accounts.central_state, program_id).unwrap();
         check_account_owner(accounts.state, program_id).unwrap();
-        check_account_owner(accounts.root_domain, &spl_name_service::id()).unwrap();
+        check_account_key(accounts.root_domain, &ROOT_DOMAIN_ACCOUNT).unwrap();
         check_account_owner(accounts.reselling_state, program_id).unwrap();
 
         Ok((accounts, signer_seeds, derived_signer_nonce))

@@ -17,7 +17,7 @@ use spl_token::state::Account;
 
 use super::{
     AUCTION_PROGRAM_ID, BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, FEES, FEE_TIERS,
-    FIDA_MINT,
+    FIDA_MINT, ROOT_DOMAIN_ACCOUNT,
 };
 use crate::{
     error::NameAuctionError,
@@ -82,7 +82,7 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_key(a.clock_sysvar, &sysvar::clock::id()).unwrap();
     check_account_key(a.spl_token_program, &spl_token::id()).unwrap();
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
-    check_account_owner(a.root_domain, &spl_name_service::id()).unwrap();
+    check_account_key(a.root_domain, &ROOT_DOMAIN_ACCOUNT).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
     check_account_key(a.auction_program, &AUCTION_PROGRAM_ID).unwrap();
     check_account_owner(a.auction, &AUCTION_PROGRAM_ID).unwrap();
