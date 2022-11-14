@@ -21,7 +21,7 @@ use solana_program::{
 use spl_name_service::state::{get_seeds_and_key, NameRecordHeader, HASH_PREFIX};
 use spl_token::instruction::transfer;
 
-use super::{PYTH_FIDA_PRICE_ACC, ROOT_DOMAIN_ACCOUNT};
+use super::{BONFIDA_USDC_VAULT, PYTH_FIDA_PRICE_ACC, ROOT_DOMAIN_ACCOUNT};
 
 struct Accounts<'a, 'b: 'a> {
     rent_sysvar: &'a AccountInfo<'b>,
@@ -33,8 +33,7 @@ struct Accounts<'a, 'b: 'a> {
     central_state: &'a AccountInfo<'b>,
     buyer: &'a AccountInfo<'b>,
     buyer_token_source: &'a AccountInfo<'b>,
-    pyth_fida_price_acc: &'a AccountInfo<'b>,
-    fida_vault: &'a AccountInfo<'b>,
+    usdc_vault: &'a AccountInfo<'b>,
     spl_token_program: &'a AccountInfo<'b>,
     state: &'a AccountInfo<'b>,
 }
@@ -53,9 +52,8 @@ fn parse_accounts<'a, 'b: 'a>(
         system_program: next_account_info(accounts_iter)?,
         central_state: next_account_info(accounts_iter)?,
         buyer: next_account_info(accounts_iter)?,
-        buyer_token_source: next_account_info(accounts_iter)?, //
-        pyth_fida_price_acc: next_account_info(accounts_iter)?,
-        fida_vault: next_account_info(accounts_iter)?,
+        buyer_token_source: next_account_info(accounts_iter)?,
+        usdc_vault: next_account_info(accounts_iter)?,
         spl_token_program: next_account_info(accounts_iter)?,
         state: next_account_info(accounts_iter)?,
     };
@@ -65,8 +63,7 @@ fn parse_accounts<'a, 'b: 'a>(
     check_account_key(a.naming_service_program, &spl_name_service::id()).unwrap();
     check_account_key(a.root_domain, &ROOT_DOMAIN_ACCOUNT).unwrap();
     check_account_key(a.system_program, &system_program::id()).unwrap();
-    check_account_key(a.pyth_fida_price_acc, &PYTH_FIDA_PRICE_ACC).unwrap();
-    check_account_key(a.fida_vault, &BONFIDA_FIDA_VAULT).unwrap();
+    check_account_key(a.usdc_vault, &BONFIDA_USDC_VAULT).unwrap();
     check_account_key(a.spl_token_program, &spl_token::ID).unwrap();
 
     // Check ownership
@@ -156,24 +153,16 @@ pub fn process_create_v2(
 
     let grapheme_len = get_grapheme_len(&name);
 
-    let min_price_fida = fp32_div(get_usd_price(grapheme_len), {
-        #[cfg(feature = "mock-oracle")]
-        {
-            5 << 32
-        }
-        #[cfg(not(feature = "mock-oracle"))]
-        get_oracle_price_fp32(&accounts.pyth_fida_price_acc.data.borrow(), 6, 6).unwrap()
-    })
-    .unwrap();
+    let min_price_usdc = get_usd_price(grapheme_len);
 
     // Transfer tokens
     let transfer_ix = transfer(
         &spl_token::ID,
         accounts.buyer_token_source.key,
-        accounts.fida_vault.key,
+        accounts.usdc_vault.key,
         accounts.buyer.key,
         &[],
-        min_price_fida,
+        min_price_usdc,
     )?;
 
     invoke(
@@ -181,7 +170,7 @@ pub fn process_create_v2(
         &[
             accounts.spl_token_program.clone(),
             accounts.buyer_token_source.clone(),
-            accounts.fida_vault.clone(),
+            accounts.usdc_vault.clone(),
             accounts.buyer.clone(),
         ],
     )?;

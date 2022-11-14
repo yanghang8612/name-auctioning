@@ -7,8 +7,8 @@ use solana_program::{
 
 pub use crate::processor::create_admin;
 use crate::processor::{
-    BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, CENTRAL_STATE, FIDA_MINT,
-    PYTH_FIDA_PRICE_ACC, ROOT_DOMAIN_ACCOUNT,
+    BONFIDA_FIDA_VAULT, BONFIDA_SOL_VAULT, BONFIDA_USDC_VAULT, CENTRAL_STATE, PYTH_FIDA_PRICE_ACC,
+    ROOT_DOMAIN_ACCOUNT, USDC_MINT,
 };
 
 #[derive(Clone, Debug, PartialEq, BorshDeserialize, BorshSerialize)]
@@ -567,7 +567,7 @@ pub fn create_v2(
     central_state: Pubkey,
     buyer: Pubkey,
     buyer_token_source: Pubkey,
-    pyth_fida_price_acc: Pubkey,
+    state: Pubkey,
     name: String,
     space: u32,
 ) -> Instruction {
@@ -584,10 +584,9 @@ pub fn create_v2(
         AccountMeta::new_readonly(central_state, false),
         AccountMeta::new(buyer, true),
         AccountMeta::new(buyer_token_source, false),
-        AccountMeta::new_readonly(FIDA_MINT, false),
-        AccountMeta::new_readonly(pyth_fida_price_acc, false),
-        AccountMeta::new(BONFIDA_FIDA_VAULT, false),
+        AccountMeta::new(BONFIDA_USDC_VAULT, false),
         AccountMeta::new_readonly(spl_token::ID, false),
+        AccountMeta::new_readonly(state, false),
     ];
 
     Instruction {

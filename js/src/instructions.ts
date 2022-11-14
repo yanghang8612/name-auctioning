@@ -817,7 +817,7 @@ export class createV2Instruction {
     centralState: PublicKey,
     buyer: PublicKey,
     buyerTokenAccount: PublicKey,
-    fidaVault: PublicKey,
+    usdcVault: PublicKey,
     state: PublicKey
   ): TransactionInstruction {
     const data = Buffer.from(this.serialize());
@@ -868,12 +868,7 @@ export class createV2Instruction {
         isWritable: true,
       },
       {
-        pubkey: PYTH_FIDDA_PRICE_ACC,
-        isSigner: false,
-        isWritable: false,
-      },
-      {
-        pubkey: fidaVault,
+        pubkey: usdcVault,
         isSigner: false,
         isWritable: true,
       },

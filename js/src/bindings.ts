@@ -207,8 +207,8 @@ export async function claimName(
     destinationTokenAccount
       ? destinationTokenAccount
       : isUsdc
-      ? BONFIDA_USDC_BNB
-      : BONFIDA_FIDA_BNB,
+        ? BONFIDA_USDC_BNB
+        : BONFIDA_FIDA_BNB,
     bidderWallet,
     bidderPot,
     bidderPotTokenAccount,
@@ -407,7 +407,7 @@ export const createV2 = async (
     centralState,
     buyer,
     buyerTokenAccount,
-    BONFIDA_FIDA_BNB,
+    BONFIDA_USDC_BNB,
     derived_state
   );
 
